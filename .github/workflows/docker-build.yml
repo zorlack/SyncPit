@@ -55,8 +55,8 @@ jobs:
             type=ref,event=branch,enable=${{ startsWith(github.ref, 'refs/heads/experimental/') }},prefix=0.0.0-experimental-,suffix=
             # Pull requests → pr-<number>
             type=ref,event=pr,prefix=pr-
-            # SHA tag for all builds
-            type=sha,prefix={{branch}}-,format=short
+            # SHA tag for branch builds only (not tags)
+            type=sha,enable=${{ github.ref_type == 'branch' }},prefix={{branch}}-,format=short
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
