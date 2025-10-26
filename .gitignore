@@ -1,0 +1,6 @@
+node_modules/
+app/node_modules/
+app/pits/*.yjs
+*.log
+.DS_Store
+.env
