@@ -13,7 +13,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}/welld
 
 jobs:
   build-and-push:
@@ -43,18 +43,20 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Tag with branch name for experimental branches
-            type=ref,event=branch
-            # Tag with PR number
-            type=ref,event=pr
-            # Tag with semver for releases
+            # Version tags (v1.2.3 → 1.2.3, 1.2, 1, latest)
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            # Tag with 'latest' for main branch
-            type=raw,value=latest,enable={{is_default_branch}}
-            # Tag with sha for all builds
-            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            # Main branch → dev, 0.0.0-dev
+            type=raw,value=dev,enable={{is_default_branch}}
+            type=raw,value=0.0.0-dev,enable={{is_default_branch}}
+            # Experimental branches → 0.0.0-experimental-<name>
+            type=ref,event=branch,enable=${{ startsWith(github.ref, 'refs/heads/experimental/') }},prefix=0.0.0-experimental-,suffix=
+            # Pull requests → pr-<number>
+            type=ref,event=pr,prefix=pr-
+            # SHA tag for all builds
+            type=sha,prefix={{branch}}-,format=short
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5

@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: syncpit/well:latest
+    image: ghcr.io/zorlack/syncpit/welld:dev
     container_name: syncpit-well
     ports:
       - "3000:3000"
