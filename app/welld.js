@@ -9,7 +9,8 @@
 
 import express from 'express';
 import { WebSocketServer } from 'ws';
-import { setupWSConnection } from 'y-websocket/bin/utils';
+import { setupWSConnection, setPersistence } from 'y-websocket/bin/utils';
+import * as Y from 'yjs';
 import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -26,10 +27,38 @@ const PIT_TTL_MINUTES = parseInt(process.env.PIT_TTL_MINUTES || '30', 10);
 const CLEANUP_INTERVAL_MINUTES = parseInt(process.env.CLEANUP_INTERVAL_MINUTES || '5', 10);
 
 // Initialize persistence layer
-const persistence = new PitPersistence({
+const pitStorage = new PitPersistence({
   pitsDir: PITS_DIR,
   ttlMs: PIT_TTL_MINUTES * 60 * 1000,
   cleanupIntervalMs: CLEANUP_INTERVAL_MINUTES * 60 * 1000
+});
+
+// Register persistence with y-websocket
+setPersistence({
+  bindState: async (docName, ydoc) => {
+    console.log(`[Persistence] bindState called for: ${docName}`);
+
+    // Load existing state from disk as binary
+    const storedUpdate = await pitStorage.loadPitBinary(docName);
+
+    if (storedUpdate && storedUpdate.length > 0) {
+      // Apply stored state to the y-websocket managed document
+      Y.applyUpdate(ydoc, storedUpdate);
+      console.log(`[Persistence] Loaded ${storedUpdate.length} bytes for pit: ${docName}`);
+    } else {
+      console.log(`[Persistence] No existing data for pit: ${docName}`);
+    }
+
+    // Listen for updates and touch the pit
+    ydoc.on('update', (update) => {
+      pitStorage.touchPit(docName);
+    });
+  },
+  writeState: async (docName, ydoc) => {
+    console.log(`[Persistence] writeState called for: ${docName}`);
+    // This is called when the last connection closes
+    await pitStorage.savePitFromYDoc(docName, ydoc);
+  }
 });
 
 // Express app
@@ -60,7 +89,7 @@ app.get('/health', (req, res) => {
 
 // Stats endpoint
 app.get('/stats', (req, res) => {
-  res.json(persistence.getStats());
+  res.json(pitStorage.getStats());
 });
 
 // Create HTTP server
@@ -69,62 +98,21 @@ const server = http.createServer(app);
 // Setup WebSocket server for Yjs
 const wss = new WebSocketServer({ server });
 
-wss.on('connection', async (ws, req) => {
-  // Extract pit slug from URL path (y-websocket sends room name as path)
-  // Example: /alpha -> 'alpha', /test123 -> 'test123'
-  const docName = req.url.slice(1).split('?')[0] || 'default';
+wss.on('connection', (ws, req) => {
+  // y-websocket will handle document management via setPersistence
+  setupWSConnection(ws, req);
 
-  console.log(`[Well] WebSocket URL: ${req.url}`);
-  console.log(`[Well] Extracted room name: ${docName}`);
+  // Track connection for stats/monitoring
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const docName = url.pathname.slice(1) || 'default';
+
   console.log(`[Well] Client connected to pit: ${docName}`);
+  pitStorage.incrementConnections(docName);
 
-  try {
-    // Load or create the pit document
-    await persistence.loadPit(docName);
-
-    // Increment connection count
-    persistence.incrementConnections(docName);
-
-    // Setup Yjs WebSocket connection with custom document getter
-    setupWSConnection(ws, req, {
-      docName,
-      gc: true,
-      // Provide our document instead of letting y-websocket create its own
-      getYDoc: (docName) => {
-        const doc = persistence.getPitDoc(docName);
-        if (!doc) {
-          console.error(`[Well] Document not found for pit: ${docName}`);
-        }
-        return doc;
-      }
-    });
-
-    // Get the document for event handling
-    const doc = persistence.getPitDoc(docName);
-
-    // Handle updates to trigger saves
-    const updateHandler = async (update, origin) => {
-      if (origin !== null) { // Don't save on initial sync
-        persistence.touchPit(docName);
-        // Debounced save will happen on disconnect or during cleanup
-      }
-    };
-
-    doc.on('update', updateHandler);
-
-    ws.on('close', async () => {
-      console.log(`[Well] Client disconnected from pit: ${docName}`);
-
-      // Clean up
-      doc.off('update', updateHandler);
-
-      // Decrement connection count and auto-save if needed
-      await persistence.decrementConnections(docName);
-    });
-  } catch (err) {
-    console.error(`[Well] Error setting up connection for pit ${docName}:`, err);
-    ws.close();
-  }
+  ws.on('close', async () => {
+    console.log(`[Well] Client disconnected from pit: ${docName}`);
+    await pitStorage.decrementConnections(docName);
+  });
 });
 
 // Graceful shutdown
@@ -137,7 +125,7 @@ async function shutdown(signal) {
   });
 
   // Save all pits and cleanup
-  await persistence.shutdown();
+  await pitStorage.shutdown();
 
   process.exit(0);
 }

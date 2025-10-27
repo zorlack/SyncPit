@@ -42,54 +42,46 @@ export class PitPersistence {
   }
 
   /**
-   * Load a Pit from disk or create a new one
+   * Load a Pit's binary data from disk
    */
-  async loadPit(slug) {
+  async loadPitBinary(slug) {
     const pitPath = this.getPitPath(slug);
-    const ydoc = new Y.Doc();
 
     try {
       // Try to load from disk
       const data = await fs.readFile(pitPath);
-      Y.applyUpdate(ydoc, data);
-      console.log(`[Persistence] Loaded pit: ${slug} (${data.length} bytes)`);
+      return data;
     } catch (err) {
       if (err.code !== 'ENOENT') {
         console.error(`[Persistence] Error loading pit ${slug}:`, err);
       }
-      // If file doesn't exist, start with empty doc
-      console.log(`[Persistence] Created new pit: ${slug}`);
+      // If file doesn't exist, return null
+      return null;
     }
-
-    // Track as active
-    this.activePits.set(slug, {
-      doc: ydoc,
-      lastAccess: Date.now(),
-      connections: 0
-    });
-
-    return ydoc;
   }
 
-  /**
-   * Save a Pit to disk
-   */
-  async savePit(slug) {
-    const pitInfo = this.activePits.get(slug);
-    if (!pitInfo) {
-      console.warn(`[Persistence] Cannot save non-existent pit: ${slug}`);
-      return;
-    }
 
+  /**
+   * Save a Pit from a Yjs document instance (used by y-websocket)
+   */
+  async savePitFromYDoc(slug, ydoc) {
     const pitPath = this.getPitPath(slug);
     const metadataPath = this.getMetadataPath(slug);
 
     try {
       // Serialize the Yjs document
-      const update = Y.encodeStateAsUpdate(pitInfo.doc);
+      const update = Y.encodeStateAsUpdate(ydoc);
 
       // Save document
       await fs.writeFile(pitPath, update);
+
+      // Get or create pit info for metadata
+      let pitInfo = this.activePits.get(slug);
+      if (!pitInfo) {
+        // Create tracking entry if it doesn't exist
+        pitInfo = { lastAccess: Date.now(), connections: 0 };
+        this.activePits.set(slug, pitInfo);
+      }
 
       // Save metadata
       const metadata = {
@@ -111,21 +103,26 @@ export class PitPersistence {
    * Update last access time for a Pit
    */
   touchPit(slug) {
-    const pitInfo = this.activePits.get(slug);
-    if (pitInfo) {
-      pitInfo.lastAccess = Date.now();
+    let pitInfo = this.activePits.get(slug);
+    if (!pitInfo) {
+      // Create tracking entry if it doesn't exist
+      pitInfo = { lastAccess: Date.now(), connections: 0 };
+      this.activePits.set(slug, pitInfo);
     }
+    pitInfo.lastAccess = Date.now();
   }
 
   /**
    * Increment connection count for a Pit
    */
   incrementConnections(slug) {
-    const pitInfo = this.activePits.get(slug);
-    if (pitInfo) {
-      pitInfo.connections++;
-      this.touchPit(slug);
+    let pitInfo = this.activePits.get(slug);
+    if (!pitInfo) {
+      pitInfo = { lastAccess: Date.now(), connections: 0 };
+      this.activePits.set(slug, pitInfo);
     }
+    pitInfo.connections++;
+    this.touchPit(slug);
   }
 
   /**
@@ -137,21 +134,10 @@ export class PitPersistence {
       pitInfo.connections = Math.max(0, pitInfo.connections - 1);
       this.touchPit(slug);
 
-      // Auto-save when last connection closes
-      if (pitInfo.connections === 0) {
-        console.log(`[Persistence] Last connection closed for pit: ${slug}, saving...`);
-        await this.savePit(slug);
-      }
+      // Note: y-websocket will call writeState which triggers savePitFromYDoc
     }
   }
 
-  /**
-   * Get Pit document for WebSocket setup
-   */
-  getPitDoc(slug) {
-    const pitInfo = this.activePits.get(slug);
-    return pitInfo ? pitInfo.doc : null;
-  }
 
   /**
    * Check if a Pit has expired based on TTL
@@ -217,16 +203,15 @@ export class PitPersistence {
   }
 
   /**
-   * Stop cleanup interval and save all active pits
+   * Stop cleanup interval
+   * Note: y-websocket automatically calls writeState when connections close,
+   * so manual saving is not needed during shutdown.
    */
   async shutdown() {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
     }
 
-    console.log('[Persistence] Saving all active pits before shutdown...');
-    const slugs = Array.from(this.activePits.keys());
-    await Promise.all(slugs.map(slug => this.savePit(slug)));
     console.log('[Persistence] Shutdown complete');
   }
 
