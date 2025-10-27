@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SyncPit - Creator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #111;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 100;
+    }
+
+    #info {
+      font-size: 14px;
+      color: #888;
+    }
+
+    #slug {
+      color: #0f0;
+      font-weight: bold;
+      font-family: monospace;
+    }
+
+    #tools {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .tool-btn {
+      background: #222;
+      border: 1px solid #444;
+      color: #fff;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .tool-btn:hover {
+      background: #333;
+    }
+
+    .tool-btn.active {
+      background: #0f0;
+      color: #000;
+      border-color: #0f0;
+    }
+
+    #colorPicker {
+      width: 40px;
+      height: 32px;
+      border: 1px solid #444;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    #canvas {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      cursor: crosshair;
+      background: #fff;
+    }
+
+    #canvas.panning {
+      cursor: grab;
+    }
+
+    #canvas.panning:active {
+      cursor: grabbing;
+    }
+
+    #status {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: monospace;
+    }
+
+    #zoomInfo {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: monospace;
+      color: #888;
+    }
+
+    .connected { color: #0f0; }
+    .disconnected { color: #f00; }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <div id="info">
+      <span style="color: #fff; font-weight: bold;">The Well</span>
+      <span style="color: #666;">→</span>
+      <span style="color: #888;">Pit</span>
+      <span id="slug"></span>
+      <span style="color: #666; margin-left: 10px;">(Creator)</span>
+    </div>
+    <div id="tools">
+      <button class="tool-btn active" id="penBtn">Pen</button>
+      <button class="tool-btn" id="eraserBtn">Eraser</button>
+      <input type="color" id="colorPicker" value="#000000">
+      <button class="tool-btn" id="clearBtn">Clear All</button>
+    </div>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <div id="status">
+    <span id="statusText" class="disconnected">Connecting...</span>
+  </div>
+
+  <div id="zoomInfo">
+    Zoom: <span id="zoomLevel">100%</span> | Pan: Hold Space/Middle Mouse
+  </div>
+
+  <script type="module" src="./creator.js"></script>
+</body>
+</html>

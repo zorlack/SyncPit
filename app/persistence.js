@@ -5,12 +5,12 @@
  * Each Pit is saved as <slug>.yjs with associated metadata.
  */
 
-import * as Y from 'yjs';
-import fs from 'fs/promises';
-import fsSync from 'fs';
-import path from 'path';
+const Y = require('yjs');
+const fs = require('fs/promises');
+const fsSync = require('fs');
+const path = require('path');
 
-export class PitPersistence {
+class PitPersistence {
   constructor(options = {}) {
     this.pitsDir = options.pitsDir || './pits';
     this.ttlMs = options.ttlMs || 30 * 60 * 1000; // Default: 30 minutes
@@ -234,3 +234,5 @@ export class PitPersistence {
     };
   }
 }
+
+module.exports = { PitPersistence };

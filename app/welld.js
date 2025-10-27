@@ -7,17 +7,13 @@
  * Pits persist to disk with configurable TTL for ephemeral collaboration.
  */
 
-import express from 'express';
-import { WebSocketServer } from 'ws';
-import { setupWSConnection, setPersistence } from 'y-websocket/bin/utils';
-import * as Y from 'yjs';
-import http from 'http';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { PitPersistence } from './persistence.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const express = require('express');
+const { WebSocketServer } = require('ws');
+const { setupWSConnection, setPersistence } = require('y-websocket/bin/utils');
+const Y = require('yjs');
+const http = require('http');
+const path = require('path');
+const { PitPersistence } = require('./persistence.js');
 
 // Configuration from environment
 const PORT = process.env.PORT || 3000;
@@ -64,17 +60,17 @@ setPersistence({
 // Express app
 const app = express();
 
-// Serve static files from the static/ directory
-app.use(express.static(path.join(__dirname, 'static')));
+// Serve static files from the dist/ directory (built by Vite)
+app.use(express.static(path.join(__dirname, 'dist')));
 
 // Route: serve creator interface
 app.get('/pit/:slug/creator', (req, res) => {
-  res.sendFile(path.join(__dirname, 'static', 'creator.html'));
+  res.sendFile(path.join(__dirname, 'dist', 'creator.html'));
 });
 
 // Route: serve viewer interface
 app.get('/pit/:slug/viewer', (req, res) => {
-  res.sendFile(path.join(__dirname, 'static', 'viewer.html'));
+  res.sendFile(path.join(__dirname, 'dist', 'viewer.html'));
 });
 
 // Route: redirect bare pit URLs to creator by default

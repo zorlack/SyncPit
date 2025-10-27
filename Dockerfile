@@ -6,8 +6,15 @@ WORKDIR /app
 # Copy package files
 COPY app/package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install ALL dependencies (including devDependencies for Vite build)
+RUN npm ci
+
+# Copy source files needed for Vite build
+COPY app/client ./client
+COPY app/vite.config.js ./
+
+# Build client with Vite
+RUN npm run build
 
 # Production image
 FROM node:20-alpine
@@ -18,14 +25,16 @@ RUN addgroup -g 1001 -S syncpit && \
 
 WORKDIR /app
 
-# Copy dependencies from builder
-COPY --from=builder --chown=syncpit:syncpit /app/node_modules ./node_modules
+# Copy package files and install production dependencies only
+COPY app/package*.json ./
+RUN npm ci --only=production
 
 # Copy application files
-COPY --chown=syncpit:syncpit app/package*.json ./
 COPY --chown=syncpit:syncpit app/welld.js ./
 COPY --chown=syncpit:syncpit app/persistence.js ./
-COPY --chown=syncpit:syncpit app/static ./static
+
+# Copy built client from builder
+COPY --from=builder --chown=syncpit:syncpit /app/dist ./dist
 
 # Create pits directory
 RUN mkdir -p pits && chown syncpit:syncpit pits
