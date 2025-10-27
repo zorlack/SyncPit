@@ -1,0 +1,24 @@
+{
+  "name": "syncpit-well",
+  "version": "0.1.0",
+  "description": "The Well - SyncPit's ephemeral real-time sync daemon",
+  "main": "welld.js",
+  "scripts": {
+    "start": "node welld.js",
+    "dev": "node --watch welld.js",
+    "build": "vite build",
+    "client-dev": "vite"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.14.2",
+    "y-websocket": "^1.5.0",
+    "yjs": "^13.6.10"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.21"
+  }
+}

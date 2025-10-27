@@ -1,0 +1,34 @@
+# Documentation
+*.md
+LORE.md
+NAMING.md
+TECHNOLOGY.md
+REQUIREMENTS.md
+AGENTS.md
+
+# Git
+.git
+.gitignore
+
+# Node
+app/node_modules
+npm-debug.log
+yarn-error.log
+
+# Pits data
+app/pits/*.yjs
+app/pits/*.json
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
