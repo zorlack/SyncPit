@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SyncPit - Creator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -12,8 +15,8 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #0a0a0a;
+      font-family: 'Special Elite', 'Courier New', monospace;
+      background: #000;
       color: #fff;
       overflow: hidden;
     }
@@ -24,8 +27,8 @@
       left: 0;
       right: 0;
       height: 60px;
-      background: #111;
-      border-bottom: 1px solid #333;
+      background: #000;
+      border-bottom: 3px solid #fff;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -34,14 +37,46 @@
     }
 
     #info {
-      font-size: 14px;
-      color: #888;
+      font-size: 18px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     #slug {
-      color: #0f0;
+      color: #fff;
       font-weight: bold;
-      font-family: monospace;
+      cursor: pointer;
+      text-shadow:
+        -2px 0 0 rgba(255, 0, 0, 0.6),
+        2px 0 0 rgba(0, 255, 255, 0.6);
+    }
+
+    #slug:hover {
+      text-decoration: underline;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 2px solid #fff;
+      color: #fff;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: 'Special Elite', monospace;
+      transition: all 0.1s;
+    }
+
+    .copy-btn:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    .copy-btn.copied {
+      background: #0f0;
+      color: #000;
+      border-color: #0f0;
     }
 
     #tools {
@@ -51,31 +86,87 @@
     }
 
     .tool-btn {
-      background: #222;
-      border: 1px solid #444;
+      background: transparent;
+      border: 2px solid #fff;
       color: #fff;
       padding: 8px 16px;
       cursor: pointer;
-      border-radius: 4px;
       font-size: 13px;
+      font-family: 'Special Elite', monospace;
+      transition: all 0.1s;
     }
 
     .tool-btn:hover {
-      background: #333;
+      background: #fff;
+      color: #000;
     }
 
     .tool-btn.active {
-      background: #0f0;
+      background: #fff;
       color: #000;
-      border-color: #0f0;
+      border-color: #fff;
     }
 
-    #colorPicker {
-      width: 40px;
-      height: 32px;
-      border: 1px solid #444;
+    .color-picker-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .color-btn {
+      width: 36px;
+      height: 36px;
+      border: 2px solid #fff;
       cursor: pointer;
-      border-radius: 4px;
+      transition: all 0.1s;
+      background: #000;
+    }
+
+    .color-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .color-swatches {
+      display: none;
+      position: absolute;
+      top: 45px;
+      right: 0;
+      background: #000;
+      border: 3px solid #fff;
+      padding: 10px;
+      gap: 8px;
+      grid-template-columns: repeat(4, 1fr);
+      z-index: 200;
+    }
+
+    .color-swatches.active {
+      display: grid;
+    }
+
+    .swatch {
+      width: 36px;
+      height: 36px;
+      border: 2px solid #fff;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+
+    .swatch:hover {
+      transform: scale(1.1);
+    }
+
+    .swatch.custom {
+      position: relative;
+      background: linear-gradient(135deg,
+        #f00 0%, #ff0 17%, #0f0 33%,
+        #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+    }
+
+    #customColorPicker {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
     }
 
     #canvas {
@@ -98,23 +189,21 @@
       position: fixed;
       bottom: 10px;
       right: 10px;
-      background: rgba(0, 0, 0, 0.7);
+      background: #000;
+      border: 2px solid #fff;
       padding: 8px 12px;
-      border-radius: 4px;
       font-size: 12px;
-      font-family: monospace;
     }
 
     #zoomInfo {
       position: fixed;
       bottom: 10px;
       left: 10px;
-      background: rgba(0, 0, 0, 0.7);
+      background: #000;
+      border: 2px solid #fff;
       padding: 8px 12px;
-      border-radius: 4px;
       font-size: 11px;
-      font-family: monospace;
-      color: #888;
+      color: #fff;
     }
 
     .connected { color: #0f0; }
@@ -124,17 +213,34 @@
 <body>
   <div id="header">
     <div id="info">
-      <span style="color: #fff; font-weight: bold;">The Well</span>
-      <span style="color: #666;">→</span>
-      <span style="color: #888;">Pit</span>
+      <span>Pit</span>
       <span id="slug"></span>
-      <span style="color: #666; margin-left: 10px;">(Creator)</span>
+      <button class="copy-btn" id="copyBtn">COPY LINK</button>
     </div>
     <div id="tools">
-      <button class="tool-btn active" id="penBtn">Pen</button>
-      <button class="tool-btn" id="eraserBtn">Eraser</button>
-      <input type="color" id="colorPicker" value="#000000">
-      <button class="tool-btn" id="clearBtn">Clear All</button>
+      <button class="tool-btn active" id="penBtn">PEN</button>
+      <button class="tool-btn" id="eraserBtn">ERASE</button>
+      <div class="color-picker-wrapper">
+        <div class="color-btn" id="colorBtn"></div>
+        <div class="color-swatches" id="colorSwatches">
+          <div class="swatch" style="background: #000000;" data-color="#000000"></div>
+          <div class="swatch" style="background: #ffffff;" data-color="#ffffff"></div>
+          <div class="swatch" style="background: #ff0000;" data-color="#ff0000"></div>
+          <div class="swatch" style="background: #00ff00;" data-color="#00ff00"></div>
+          <div class="swatch" style="background: #0000ff;" data-color="#0000ff"></div>
+          <div class="swatch" style="background: #ffff00;" data-color="#ffff00"></div>
+          <div class="swatch" style="background: #ff00ff;" data-color="#ff00ff"></div>
+          <div class="swatch" style="background: #00ffff;" data-color="#00ffff"></div>
+          <div class="swatch" style="background: #ff6b35;" data-color="#ff6b35"></div>
+          <div class="swatch" style="background: #4ecdc4;" data-color="#4ecdc4"></div>
+          <div class="swatch" style="background: #ff006e;" data-color="#ff006e"></div>
+          <div class="swatch" style="background: #8338ec;" data-color="#8338ec"></div>
+          <div class="swatch custom">
+            <input type="color" id="customColorPicker" value="#000000">
+          </div>
+        </div>
+      </div>
+      <button class="tool-btn" id="clearBtn">CLEAR</button>
     </div>
   </div>
 

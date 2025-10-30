@@ -8,6 +8,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
+        index: resolve(__dirname, 'client/index.html'),
         creator: resolve(__dirname, 'client/creator.html'),
         viewer: resolve(__dirname, 'client/viewer.html'),
       },

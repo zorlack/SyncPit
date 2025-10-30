@@ -5,6 +5,24 @@ import { WebsocketProvider } from 'y-websocket';
 const pitSlug = window.location.pathname.split('/')[2];
 document.getElementById('slug').textContent = pitSlug;
 
+// Copy link functionality
+const copyBtn = document.getElementById('copyBtn');
+copyBtn.addEventListener('click', async () => {
+  // Always copy viewer link
+  const viewerUrl = window.location.origin + '/pit/' + pitSlug + '/viewer';
+  try {
+    await navigator.clipboard.writeText(viewerUrl);
+    copyBtn.textContent = 'COPIED!';
+    copyBtn.classList.add('copied');
+    setTimeout(() => {
+      copyBtn.textContent = 'COPY LINK';
+      copyBtn.classList.remove('copied');
+    }, 2000);
+  } catch (err) {
+    console.error('Failed to copy:', err);
+  }
+});
+
 // Setup canvas
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -96,13 +114,58 @@ document.getElementById('eraserBtn').addEventListener('click', () => {
   document.getElementById('penBtn').classList.remove('active');
 });
 
-document.getElementById('colorPicker').addEventListener('change', (e) => {
+// Color picker
+const colorBtn = document.getElementById('colorBtn');
+const colorSwatches = document.getElementById('colorSwatches');
+const customColorPicker = document.getElementById('customColorPicker');
+
+// Set initial color
+colorBtn.style.background = currentColor;
+
+// Toggle swatch panel
+colorBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  colorSwatches.classList.toggle('active');
+});
+
+// Close swatch panel when clicking outside
+document.addEventListener('click', () => {
+  colorSwatches.classList.remove('active');
+});
+
+colorSwatches.addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+
+// Handle swatch selection
+document.querySelectorAll('.swatch:not(.custom)').forEach(swatch => {
+  swatch.addEventListener('click', () => {
+    currentColor = swatch.getAttribute('data-color');
+    colorBtn.style.background = currentColor;
+    colorSwatches.classList.remove('active');
+
+    if (currentTool === 'eraser') {
+      currentTool = 'pen';
+      document.getElementById('penBtn').classList.add('active');
+      document.getElementById('eraserBtn').classList.remove('active');
+    }
+  });
+});
+
+// Handle custom color picker
+customColorPicker.addEventListener('input', (e) => {
   currentColor = e.target.value;
+  colorBtn.style.background = currentColor;
+
   if (currentTool === 'eraser') {
     currentTool = 'pen';
     document.getElementById('penBtn').classList.add('active');
     document.getElementById('eraserBtn').classList.remove('active');
   }
+});
+
+customColorPicker.addEventListener('change', () => {
+  colorSwatches.classList.remove('active');
 });
 
 document.getElementById('clearBtn').addEventListener('click', () => {

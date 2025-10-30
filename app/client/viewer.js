@@ -4,6 +4,24 @@ import { WebsocketProvider } from 'y-websocket';
     const pitSlug = window.location.pathname.split('/')[2];
     document.getElementById('slug').textContent = pitSlug;
 
+    // Copy link functionality
+    const copyBtn = document.getElementById('copyBtn');
+    copyBtn.addEventListener('click', async () => {
+      // Always copy viewer link
+      const viewerUrl = window.location.origin + '/pit/' + pitSlug + '/viewer';
+      try {
+        await navigator.clipboard.writeText(viewerUrl);
+        copyBtn.textContent = 'COPIED!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = 'COPY LINK';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    });
+
     // Setup canvas
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -92,7 +110,16 @@ import { WebsocketProvider } from 'y-websocket';
         if (state.role === 'creator') {
           creatorState = state;
 
-          // Update cursor position
+          // Follow viewport if enabled (do this BEFORE cursor positioning)
+          if (isFollowing && state.viewport) {
+            viewport.offsetX = state.viewport.offsetX;
+            viewport.offsetY = state.viewport.offsetY;
+            viewport.scale = state.viewport.scale;
+            updateZoomDisplay();
+            redrawCanvas();
+          }
+
+          // Update cursor position (after viewport sync)
           if (state.cursor) {
             const screenPos = worldToScreen(state.cursor.x, state.cursor.y);
             const rect = canvas.getBoundingClientRect();
@@ -100,15 +127,6 @@ import { WebsocketProvider } from 'y-websocket';
             creatorCursor.style.left = (rect.left + screenPos.x) + 'px';
             creatorCursor.style.top = (rect.top + screenPos.y + 60) + 'px';
             creatorCursor.style.display = 'block';
-          }
-
-          // Follow viewport if enabled
-          if (isFollowing && state.viewport) {
-            viewport.offsetX = state.viewport.offsetX;
-            viewport.offsetY = state.viewport.offsetY;
-            viewport.scale = state.viewport.scale;
-            updateZoomDisplay();
-            redrawCanvas();
           }
 
           break;
