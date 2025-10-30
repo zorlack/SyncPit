@@ -137,7 +137,7 @@
 
     .actions {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: 1fr 1fr;
       gap: 30px;
       margin-bottom: 50px;
     }
@@ -201,6 +201,12 @@
       display: block;
     }
 
+    .jump-form-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
     .jump-form input {
       background: #000;
       color: #fff;
@@ -208,11 +214,36 @@
       padding: 10px;
       font-family: 'Special Elite', monospace;
       font-size: 1rem;
-      width: 100%;
-      margin-bottom: 10px;
+      flex: 1;
     }
 
     .action-box:hover .jump-form input {
+      background: #fff;
+      color: #000;
+      border-color: #000;
+    }
+
+    .scan-qr-btn {
+      background: transparent;
+      color: #fff;
+      border: 2px solid #fff;
+      width: 44px;
+      height: 44px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s;
+      padding: 0;
+    }
+
+    .scan-qr-btn:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    .action-box:hover .scan-qr-btn {
       background: #fff;
       color: #000;
       border-color: #000;
@@ -287,20 +318,17 @@
           <button id="jump-btn">JUMP</button>
         </div>
         <div class="jump-form" id="jump-form" onclick="event.stopPropagation()">
-          <input
-            type="text"
-            id="pit-code"
-            placeholder="Enter pit code..."
-            onkeypress="if(event.key==='Enter') jumpToPit()"
-          >
+          <div class="jump-form-row">
+            <input
+              type="text"
+              id="pit-code"
+              placeholder="Enter pit code..."
+              onkeypress="if(event.key==='Enter') jumpToPit()"
+            >
+            <button class="scan-qr-btn" onclick="openQRScanner(event)" title="Scan QR Code">📷</button>
+          </div>
           <button onclick="jumpToPit()" style="width: 100%;">GO</button>
         </div>
-      </div>
-
-      <div class="action-box" onclick="openQRScanner()">
-        <h2>Scan QR</h2>
-        <p>Point your camera at a QR code.</p>
-        <button>SCAN</button>
       </div>
     </div>
 
@@ -367,7 +395,11 @@
       }
     }
 
-    window.openQRScanner = async function() {
+    window.openQRScanner = async function(event) {
+      if (event) {
+        event.stopPropagation();
+      }
+
       const modal = document.getElementById('qr-scanner-modal');
       const status = document.getElementById('scanner-status');
 
