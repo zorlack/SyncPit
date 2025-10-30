@@ -1,6 +1,9 @@
 # The Well - SyncPit Docker Image
 FROM node:20-alpine AS builder
 
+# Install git for version detection
+RUN apk add --no-cache git
+
 WORKDIR /app
 
 # Copy package files
@@ -9,11 +12,17 @@ COPY app/package*.json ./
 # Install ALL dependencies (including devDependencies for Vite build)
 RUN npm ci
 
+# Copy .git directory for version detection
+COPY .git ./.git
+
+# Copy version sync script
+COPY app/scripts ./scripts
+
 # Copy source files needed for Vite build
 COPY app/client ./client
 COPY app/vite.config.js ./
 
-# Build client with Vite
+# Build client with Vite (prebuild hook will sync version)
 RUN npm run build
 
 # Production image

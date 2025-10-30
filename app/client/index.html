@@ -283,6 +283,7 @@
     <footer>
       <p>Built with Yjs. Runs on Node. Hosted wherever.</p>
       <p>Source: <a href="https://github.com/zorlack/SyncPit" style="color: #666;">github.com/zorlack/SyncPit</a></p>
+      <p id="version-info" style="color: #444; font-size: 0.75rem; margin-top: 10px;"></p>
     </footer>
   </div>
 
@@ -299,6 +300,9 @@
   </div>
 
   <script>
+    // Display version
+    document.getElementById('version-info').textContent = `v${__APP_VERSION__}`;
+
     function createPit() {
       // Generate a random pit slug
       const slug = Math.random().toString(36).substring(2, 10);
