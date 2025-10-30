@@ -1,15 +1,45 @@
 {
-  "name": "syncpit-well",
+  "name": "@zorlack/syncpit",
   "version": "0.4.0-alpha.1",
-  "description": "The Well - SyncPit's ephemeral real-time sync daemon",
+  "description": "Ephemeral real-time collaborative whiteboard - no accounts, no bullshit",
   "main": "welld.js",
+  "bin": {
+    "syncpit": "./welld.js"
+  },
+  "files": [
+    "welld.js",
+    "persistence.js",
+    "dist/",
+    "scripts/"
+  ],
   "scripts": {
     "start": "node welld.js",
     "dev": "node --watch welld.js",
     "sync-version": "node scripts/sync-version.js",
     "prebuild": "npm run sync-version",
     "build": "vite build",
-    "client-dev": "vite"
+    "client-dev": "vite",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "whiteboard",
+    "collaborative",
+    "drawing",
+    "crdt",
+    "yjs",
+    "ephemeral",
+    "real-time"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zorlack/SyncPit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zorlack/SyncPit/issues"
+  },
+  "homepage": "https://github.com/zorlack/SyncPit#readme",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "dependencies": {
     "express": "^4.18.2",
