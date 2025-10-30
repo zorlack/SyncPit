@@ -1,32 +1,32 @@
 # The Well - SyncPit Docker Image
 FROM node:20-alpine AS builder
 
-# Install git for version detection
-RUN apk add --no-cache git
+# Accept version as build arg
+ARG VERSION=0.0.0-dev
 
 WORKDIR /app
 
 # Copy package files
 COPY app/package*.json ./
 
+# Update package.json version
+RUN sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" package.json
+
 # Install ALL dependencies (including devDependencies for Vite build)
 RUN npm ci
-
-# Copy .git directory for version detection
-COPY .git ./.git
-
-# Copy version sync script
-COPY app/scripts ./scripts
 
 # Copy source files needed for Vite build
 COPY app/client ./client
 COPY app/vite.config.js ./
 
-# Build client with Vite (prebuild hook will sync version)
-RUN npm run build
+# Build client with Vite (skip prebuild hook since version is already set)
+RUN npx vite build
 
 # Production image
 FROM node:20-alpine
+
+# Accept version as build arg
+ARG VERSION=0.0.0-dev
 
 # Create non-root user
 RUN addgroup -g 1001 -S syncpit && \
@@ -36,6 +36,10 @@ WORKDIR /app
 
 # Copy package files and install production dependencies only
 COPY app/package*.json ./
+
+# Update package.json version
+RUN sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" package.json
+
 RUN npm ci --only=production
 
 # Copy application files

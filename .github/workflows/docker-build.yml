@@ -58,6 +58,18 @@ jobs:
             # SHA tag for branch builds only (not tags)
             type=sha,enable=${{ github.ref_type == 'branch' }},prefix={{branch}}-,format=short
 
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          elif [[ "${{ github.ref }}" == refs/heads/main ]]; then
+            VERSION="0.0.0-dev"
+          else
+            VERSION="0.0.0-dev-${GITHUB_SHA::7}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -68,6 +80,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ steps.version.outputs.version }}
 
       - name: Image digest
         run: echo ${{ steps.meta.outputs.digest }}
