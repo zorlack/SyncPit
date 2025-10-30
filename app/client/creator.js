@@ -3,20 +3,21 @@ import { WebsocketProvider } from 'y-websocket';
 
 // Extract pit slug from URL
 const pitSlug = window.location.pathname.split('/')[2];
-document.getElementById('slug').textContent = pitSlug;
+const slugEl = document.getElementById('slug');
+slugEl.textContent = pitSlug;
 
-// Copy link functionality
-const copyBtn = document.getElementById('copyBtn');
-copyBtn.addEventListener('click', async () => {
+// Copy link functionality - click on slug to copy
+slugEl.addEventListener('click', async () => {
   // Always copy viewer link
   const viewerUrl = window.location.origin + '/pit/' + pitSlug + '/viewer';
   try {
     await navigator.clipboard.writeText(viewerUrl);
-    copyBtn.textContent = 'COPIED!';
-    copyBtn.classList.add('copied');
+    const originalText = slugEl.textContent;
+    slugEl.textContent = 'COPIED!';
+    slugEl.classList.add('copied');
     setTimeout(() => {
-      copyBtn.textContent = 'COPY LINK';
-      copyBtn.classList.remove('copied');
+      slugEl.textContent = originalText;
+      slugEl.classList.remove('copied');
     }, 2000);
   } catch (err) {
     console.error('Failed to copy:', err);
@@ -69,6 +70,7 @@ function updateZoomDisplay() {
 // Yjs setup
 const ydoc = new Y.Doc();
 const strokes = ydoc.getArray('strokes');
+const metadata = ydoc.getMap('metadata');
 
 // WebSocket connection
 const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -168,12 +170,155 @@ customColorPicker.addEventListener('change', () => {
   colorSwatches.classList.remove('active');
 });
 
-document.getElementById('clearBtn').addEventListener('click', () => {
-  if (confirm('Clear the entire pit?')) {
-    ydoc.transact(() => {
-      strokes.delete(0, strokes.length);
+document.getElementById('exportBtn').addEventListener('click', () => {
+  // Create a temporary canvas for export with white background
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = canvas.width;
+  exportCanvas.height = canvas.height;
+  const exportCtx = exportCanvas.getContext('2d');
+
+  // Fill with white background
+  exportCtx.fillStyle = '#ffffff';
+  exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+  // Draw the current canvas on top
+  exportCtx.drawImage(canvas, 0, 0);
+
+  // Export as PNG
+  exportCanvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pit-${pitSlug}-view-${Date.now()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+});
+
+document.getElementById('exportFullBtn').addEventListener('click', () => {
+  // Calculate bounding box of all strokes
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  strokes.forEach(stroke => {
+    if (!stroke || !stroke.points) return;
+    stroke.points.forEach(pt => {
+      minX = Math.min(minX, pt.x);
+      minY = Math.min(minY, pt.y);
+      maxX = Math.max(maxX, pt.x);
+      maxY = Math.max(maxY, pt.y);
     });
+  });
+
+  // If no strokes, export empty canvas
+  if (minX === Infinity) {
+    alert('Nothing to export - canvas is empty!');
+    return;
   }
+
+  // Add padding
+  const padding = 50;
+  minX -= padding;
+  minY -= padding;
+  maxX += padding;
+  maxY += padding;
+
+  const width = Math.ceil(maxX - minX);
+  const height = Math.ceil(maxY - minY);
+
+  // Create export canvas
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = width;
+  exportCanvas.height = height;
+  const exportCtx = exportCanvas.getContext('2d');
+
+  // Fill with white background
+  exportCtx.fillStyle = '#ffffff';
+  exportCtx.fillRect(0, 0, width, height);
+
+  // Draw all strokes in world coordinates (offset by minX, minY)
+  strokes.forEach(stroke => {
+    if (!stroke || !stroke.points || stroke.points.length < 2) return;
+
+    exportCtx.strokeStyle = stroke.color || '#000000';
+    exportCtx.lineWidth = stroke.width || 3;
+    exportCtx.lineCap = 'round';
+    exportCtx.lineJoin = 'round';
+
+    exportCtx.beginPath();
+    const startX = stroke.points[0].x - minX;
+    const startY = stroke.points[0].y - minY;
+    exportCtx.moveTo(startX, startY);
+
+    for (let i = 1; i < stroke.points.length; i++) {
+      const x = stroke.points[i].x - minX;
+      const y = stroke.points[i].y - minY;
+      exportCtx.lineTo(x, y);
+    }
+
+    exportCtx.stroke();
+  });
+
+  // Export as PNG
+  exportCanvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pit-${pitSlug}-full-${Date.now()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+});
+
+// Bail modal functions
+function openBailModal() {
+  document.getElementById('bailModal').classList.add('active');
+}
+
+function closeBailModal() {
+  document.getElementById('bailModal').classList.remove('active');
+}
+
+// Make closeBailModal globally available for inline onclick
+window.closeBailModal = closeBailModal;
+
+document.getElementById('bailBtn').addEventListener('click', openBailModal);
+
+// Close modal when clicking outside
+document.getElementById('bailModal').addEventListener('click', (e) => {
+  if (e.target.id === 'bailModal') {
+    closeBailModal();
+  }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeBailModal();
+  }
+});
+
+// Save before bail
+document.getElementById('saveBeforeBailBtn').addEventListener('click', () => {
+  // Trigger full export
+  document.getElementById('exportFullBtn').click();
+  // Don't close modal - let user choose what to do next
+});
+
+// Flush the pit
+document.getElementById('flushBtn').addEventListener('click', () => {
+  ydoc.transact(() => {
+    strokes.delete(0, strokes.length);
+  });
+  closeBailModal();
+});
+
+// Bail to home
+document.getElementById('bailHomeBtn').addEventListener('click', () => {
+  window.location.href = '/';
 });
 
 // Drawing functions
@@ -210,14 +355,35 @@ function redrawCanvas() {
   // Clear entire canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Fill with background color (default to white if not set)
+  const bgColor = metadata.get('background') || '#ffffff';
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   // Draw all strokes with current viewport transform
   strokes.forEach(stroke => drawStroke(stroke));
+}
+
+// Update button states based on canvas content
+function updateExportButtons() {
+  const isEmpty = strokes.length === 0;
+  document.getElementById('exportBtn').disabled = isEmpty;
+  document.getElementById('exportFullBtn').disabled = isEmpty;
+  document.getElementById('saveBeforeBailBtn').disabled = isEmpty;
 }
 
 // Listen to Yjs changes
 strokes.observe(() => {
   redrawCanvas();
+  updateExportButtons();
 });
+
+metadata.observe(() => {
+  redrawCanvas();
+});
+
+// Initial button state
+updateExportButtons();
 
 // Drawing interaction
 let currentStroke = null;
@@ -227,8 +393,8 @@ canvas.addEventListener('mousedown', (e) => {
   const screenX = e.clientX - rect.left;
   const screenY = e.clientY - rect.top;
 
-  // Pan mode: space key or middle mouse button
-  if (spacePressed || e.button === 1) {
+  // Pan mode: space key, middle mouse button, or right mouse button
+  if (spacePressed || e.button === 1 || e.button === 2) {
     isPanning = true;
     panStart = { x: screenX, y: screenY };
     canvas.classList.add('panning');

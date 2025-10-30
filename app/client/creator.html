@@ -44,17 +44,29 @@
       gap: 10px;
     }
 
-    #slug {
+    #pitLabel {
       color: #fff;
       font-weight: bold;
-      cursor: pointer;
+      text-transform: uppercase;
       text-shadow:
         -2px 0 0 rgba(255, 0, 0, 0.6),
         2px 0 0 rgba(0, 255, 255, 0.6);
     }
 
+    #slug {
+      color: #999;
+      font-weight: normal;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
     #slug:hover {
       text-decoration: underline;
+      color: #fff;
+    }
+
+    #slug.copied {
+      color: #0f0;
     }
 
     .copy-btn {
@@ -89,11 +101,15 @@
       background: transparent;
       border: 2px solid #fff;
       color: #fff;
-      padding: 8px 16px;
+      padding: 0 16px;
+      height: 36px;
       cursor: pointer;
       font-size: 13px;
       font-family: 'Special Elite', monospace;
       transition: all 0.1s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .tool-btn:hover {
@@ -105,6 +121,28 @@
       background: #fff;
       color: #000;
       border-color: #fff;
+    }
+
+    .tool-btn.icon-btn {
+      padding: 0;
+      width: 36px;
+    }
+
+    .tool-btn:disabled,
+    .modal-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .tool-btn:disabled:hover,
+    .modal-btn:disabled:hover {
+      background: transparent;
+      color: inherit;
+    }
+
+    .modal-btn.save:disabled:hover {
+      background: transparent;
+      color: #0f0;
     }
 
     .color-picker-wrapper {
@@ -208,14 +246,112 @@
 
     .connected { color: #0f0; }
     .disconnected { color: #f00; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #000;
+      border: 3px solid #fff;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: transparent;
+      color: #fff;
+      border: 2px solid #fff;
+      width: 40px;
+      height: 40px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      font-family: 'Special Elite', monospace;
+    }
+
+    .modal-close:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    .modal h2 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      text-shadow:
+        -2px 0 0 rgba(255, 0, 0, 0.6),
+        2px 0 0 rgba(0, 255, 255, 0.6);
+    }
+
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .modal-btn {
+      background: transparent;
+      border: 2px solid #fff;
+      color: #fff;
+      padding: 15px 30px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-family: 'Special Elite', monospace;
+      transition: all 0.1s;
+      text-transform: uppercase;
+    }
+
+    .modal-btn:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    .modal-btn.danger {
+      border-color: #f00;
+      color: #f00;
+    }
+
+    .modal-btn.danger:hover {
+      background: #f00;
+      color: #fff;
+    }
+
+    .modal-btn.save {
+      border-color: #0f0;
+      color: #0f0;
+    }
+
+    .modal-btn.save:hover {
+      background: #0f0;
+      color: #000;
+    }
   </style>
 </head>
 <body>
   <div id="header">
     <div id="info">
-      <span>Pit</span>
-      <span id="slug"></span>
-      <button class="copy-btn" id="copyBtn">COPY LINK</button>
+      <span id="pitLabel">Pit</span>
+      <span id="slug" title="Click to copy link"></span>
     </div>
     <div id="tools">
       <button class="tool-btn active" id="penBtn">PEN</button>
@@ -240,7 +376,21 @@
           </div>
         </div>
       </div>
-      <button class="tool-btn" id="clearBtn">CLEAR</button>
+      <button class="tool-btn icon-btn" id="exportBtn" title="Export View">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="6" width="20" height="14" rx="2"/>
+          <circle cx="12" cy="13" r="3"/>
+          <path d="M7 6V4"/>
+        </svg>
+      </button>
+      <button class="tool-btn icon-btn" id="exportFullBtn" title="Export Full">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <path d="M17 21v-8H7v8"/>
+          <path d="M7 3v5h8"/>
+        </svg>
+      </button>
+      <button class="tool-btn" id="bailBtn">BAIL!</button>
     </div>
   </div>
 
@@ -251,7 +401,20 @@
   </div>
 
   <div id="zoomInfo">
-    Zoom: <span id="zoomLevel">100%</span> | Pan: Hold Space/Middle Mouse
+    Zoom: <span id="zoomLevel">100%</span> | Pan: Space/Right-Drag
+  </div>
+
+  <div class="modal" id="bailModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeBailModal()">×</button>
+      <h2>Bail Out?</h2>
+      <p>What do you want to do?</p>
+      <div class="modal-actions">
+        <button class="modal-btn save" id="saveBeforeBailBtn">💾 Save First!</button>
+        <button class="modal-btn danger" id="flushBtn">🔥 Flush the Pit</button>
+        <button class="modal-btn" id="bailHomeBtn">👋 Bail</button>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="./creator.js"></script>

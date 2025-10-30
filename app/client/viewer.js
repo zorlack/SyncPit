@@ -2,20 +2,21 @@ import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
     // Extract pit slug from URL
     const pitSlug = window.location.pathname.split('/')[2];
-    document.getElementById('slug').textContent = pitSlug;
+    const slugEl = document.getElementById('slug');
+    slugEl.textContent = pitSlug;
 
-    // Copy link functionality
-    const copyBtn = document.getElementById('copyBtn');
-    copyBtn.addEventListener('click', async () => {
+    // Copy link functionality - click on slug to copy
+    slugEl.addEventListener('click', async () => {
       // Always copy viewer link
       const viewerUrl = window.location.origin + '/pit/' + pitSlug + '/viewer';
       try {
         await navigator.clipboard.writeText(viewerUrl);
-        copyBtn.textContent = 'COPIED!';
-        copyBtn.classList.add('copied');
+        const originalText = slugEl.textContent;
+        slugEl.textContent = 'COPIED!';
+        slugEl.classList.add('copied');
         setTimeout(() => {
-          copyBtn.textContent = 'COPY LINK';
-          copyBtn.classList.remove('copied');
+          slugEl.textContent = originalText;
+          slugEl.classList.remove('copied');
         }, 2000);
       } catch (err) {
         console.error('Failed to copy:', err);
@@ -66,6 +67,7 @@ import { WebsocketProvider } from 'y-websocket';
     // Yjs setup
     const ydoc = new Y.Doc();
     const strokes = ydoc.getArray('strokes');
+    const metadata = ydoc.getMap('metadata');
 
     // WebSocket connection
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -99,6 +101,117 @@ import { WebsocketProvider } from 'y-websocket';
       if (!isFollowing) {
         creatorCursor.style.display = 'none';
       }
+    });
+
+    // Export button
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      // Create a temporary canvas for export with white background
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = canvas.width;
+      exportCanvas.height = canvas.height;
+      const exportCtx = exportCanvas.getContext('2d');
+
+      // Fill with white background
+      exportCtx.fillStyle = '#ffffff';
+      exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+      // Draw the current canvas on top
+      exportCtx.drawImage(canvas, 0, 0);
+
+      // Export as PNG
+      exportCanvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pit-${pitSlug}-view-${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    });
+
+    document.getElementById('exportFullBtn').addEventListener('click', () => {
+      // Calculate bounding box of all strokes
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+      strokes.forEach(stroke => {
+        if (!stroke || !stroke.points) return;
+        stroke.points.forEach(pt => {
+          minX = Math.min(minX, pt.x);
+          minY = Math.min(minY, pt.y);
+          maxX = Math.max(maxX, pt.x);
+          maxY = Math.max(maxY, pt.y);
+        });
+      });
+
+      // If no strokes, export empty canvas
+      if (minX === Infinity) {
+        alert('Nothing to export - canvas is empty!');
+        return;
+      }
+
+      // Add padding
+      const padding = 50;
+      minX -= padding;
+      minY -= padding;
+      maxX += padding;
+      maxY += padding;
+
+      const width = Math.ceil(maxX - minX);
+      const height = Math.ceil(maxY - minY);
+
+      // Create export canvas
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = width;
+      exportCanvas.height = height;
+      const exportCtx = exportCanvas.getContext('2d');
+
+      // Fill with white background
+      exportCtx.fillStyle = '#ffffff';
+      exportCtx.fillRect(0, 0, width, height);
+
+      // Draw all strokes in world coordinates (offset by minX, minY)
+      strokes.forEach(stroke => {
+        if (!stroke || !stroke.points || stroke.points.length < 2) return;
+
+        exportCtx.strokeStyle = stroke.color || '#000000';
+        exportCtx.lineWidth = stroke.width || 3;
+        exportCtx.lineCap = 'round';
+        exportCtx.lineJoin = 'round';
+
+        if (stroke.tool === 'eraser') {
+          exportCtx.globalCompositeOperation = 'destination-out';
+          exportCtx.lineWidth = 20;
+        } else {
+          exportCtx.globalCompositeOperation = 'source-over';
+        }
+
+        exportCtx.beginPath();
+        const startX = stroke.points[0].x - minX;
+        const startY = stroke.points[0].y - minY;
+        exportCtx.moveTo(startX, startY);
+
+        for (let i = 1; i < stroke.points.length; i++) {
+          const x = stroke.points[i].x - minX;
+          const y = stroke.points[i].y - minY;
+          exportCtx.lineTo(x, y);
+        }
+
+        exportCtx.stroke();
+      });
+
+      // Export as PNG
+      exportCanvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pit-${pitSlug}-full-${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
     });
 
     // Listen to awareness changes (creator cursor and viewport)
@@ -166,13 +279,34 @@ import { WebsocketProvider } from 'y-websocket';
 
     function redrawCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Fill with background color (default to white if not set)
+      const bgColor = metadata.get('background') || '#ffffff';
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
       strokes.forEach(stroke => drawStroke(stroke));
+    }
+
+    // Update button states based on canvas content
+    function updateExportButtons() {
+      const isEmpty = strokes.length === 0;
+      document.getElementById('exportBtn').disabled = isEmpty;
+      document.getElementById('exportFullBtn').disabled = isEmpty;
     }
 
     // Listen to Yjs changes and redraw
     strokes.observe(() => {
       redrawCanvas();
+      updateExportButtons();
     });
+
+    metadata.observe(() => {
+      redrawCanvas();
+    });
+
+    // Initial button state
+    updateExportButtons();
 
     // Pan interaction
     canvas.addEventListener('mousedown', (e) => {
@@ -181,7 +315,7 @@ import { WebsocketProvider } from 'y-websocket';
       const screenY = e.clientY - rect.top;
 
       // Pan mode: any mouse button or space key
-      if (spacePressed || e.button === 0 || e.button === 1) {
+      if (spacePressed || e.button === 0 || e.button === 1 || e.button === 2) {
         isPanning = true;
         panStart = { x: screenX, y: screenY };
         canvas.classList.add('panning');

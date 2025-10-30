@@ -44,17 +44,29 @@
       gap: 10px;
     }
 
-    #slug {
+    #pitLabel {
       color: #fff;
       font-weight: bold;
-      cursor: pointer;
+      text-transform: uppercase;
       text-shadow:
         -2px 0 0 rgba(255, 0, 0, 0.6),
         2px 0 0 rgba(0, 255, 255, 0.6);
     }
 
+    #slug {
+      color: #999;
+      font-weight: normal;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
     #slug:hover {
       text-decoration: underline;
+      color: #fff;
+    }
+
+    #slug.copied {
+      color: #0f0;
     }
 
     .copy-btn {
@@ -87,15 +99,54 @@
       border: 2px solid #0ff;
     }
 
+    .tool-btn {
+      background: transparent;
+      border: 2px solid #fff;
+      color: #fff;
+      padding: 0 16px;
+      height: 36px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: 'Special Elite', monospace;
+      transition: all 0.1s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tool-btn:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    .tool-btn.icon-btn {
+      padding: 0;
+      width: 36px;
+    }
+
+    .tool-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .tool-btn:disabled:hover {
+      background: transparent;
+      color: inherit;
+    }
+
     #followBtn {
       background: transparent;
       border: 2px solid #fff;
       color: #fff;
-      padding: 6px 14px;
+      padding: 0 14px;
+      height: 36px;
       cursor: pointer;
       font-size: 12px;
       font-family: 'Special Elite', monospace;
       transition: all 0.1s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     #followBtn:hover {
@@ -165,12 +216,25 @@
 <body>
   <div id="header">
     <div id="info">
-      <span>Pit</span>
-      <span id="slug"></span>
-      <button class="copy-btn" id="copyBtn">COPY LINK</button>
+      <span id="pitLabel">Pit</span>
+      <span id="slug" title="Click to copy link"></span>
       <div id="viewerBadge">VIEW ONLY</div>
     </div>
-    <div style="display: flex; align-items: center;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button class="tool-btn icon-btn" id="exportBtn" title="Export View">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="6" width="20" height="14" rx="2"/>
+          <circle cx="12" cy="13" r="3"/>
+          <path d="M7 6V4"/>
+        </svg>
+      </button>
+      <button class="tool-btn icon-btn" id="exportFullBtn" title="Export Full">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <path d="M17 21v-8H7v8"/>
+          <path d="M7 3v5h8"/>
+        </svg>
+      </button>
       <button id="followBtn">FOLLOW</button>
     </div>
   </div>
@@ -183,7 +247,7 @@
   </div>
 
   <div id="zoomInfo">
-    Zoom: <span id="zoomLevel">100%</span> | Pan: Drag/Space
+    Zoom: <span id="zoomLevel">100%</span> | Pan: Space/Right-Drag
   </div>
 
   <script type="module" src="./viewer.js"></script>
