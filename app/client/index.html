@@ -137,7 +137,7 @@
 
     .actions {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 30px;
       margin-bottom: 50px;
     }
@@ -227,6 +227,24 @@
       border-top: 1px solid #333;
     }
 
+    #qr-reader {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    #qr-reader video {
+      width: 100%;
+      border: 3px solid #fff;
+    }
+
+    .scanner-status {
+      text-align: center;
+      margin-top: 20px;
+      color: #0ff;
+      font-size: 0.9rem;
+    }
+
     @media (max-width: 768px) {
       h1 {
         font-size: 18vw;
@@ -278,6 +296,12 @@
           <button onclick="jumpToPit()" style="width: 100%;">GO</button>
         </div>
       </div>
+
+      <div class="action-box" onclick="openQRScanner()">
+        <h2>Scan QR</h2>
+        <p>Point your camera at a QR code.</p>
+        <button>SCAN</button>
+      </div>
     </div>
 
     <footer>
@@ -299,9 +323,22 @@
     </div>
   </div>
 
-  <script>
+  <div class="modal" id="qr-scanner-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeQRScanner()">×</button>
+      <h2 style="text-transform: uppercase; margin-bottom: 20px;">Scan QR Code</h2>
+      <div id="qr-reader"></div>
+      <div class="scanner-status" id="scanner-status">Point camera at QR code...</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { Html5Qrcode } from 'html5-qrcode';
+
     // Display version
     document.getElementById('version-info').textContent = `v${__APP_VERSION__}`;
+
+    let html5QrCode = null;
 
     function createPit() {
       // Generate a random pit slug
@@ -330,6 +367,76 @@
       }
     }
 
+    window.openQRScanner = async function() {
+      const modal = document.getElementById('qr-scanner-modal');
+      const status = document.getElementById('scanner-status');
+
+      modal.classList.add('active');
+      status.textContent = 'Starting camera...';
+
+      try {
+        html5QrCode = new Html5Qrcode('qr-reader');
+
+        await html5QrCode.start(
+          { facingMode: 'environment' }, // Use back camera
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 }
+          },
+          (decodedText) => {
+            // QR code found!
+            status.textContent = 'QR Code found!';
+
+            // Extract pit code from URL
+            // Supports: /pit/ABC123/creator, /pit/ABC123/viewer, or just ABC123
+            let pitCode = null;
+
+            try {
+              const url = new URL(decodedText);
+              const match = url.pathname.match(/\/pit\/([^\/]+)/);
+              if (match) {
+                pitCode = match[1];
+              }
+            } catch {
+              // Not a valid URL, maybe just the pit code
+              pitCode = decodedText.trim();
+            }
+
+            if (pitCode) {
+              closeQRScanner();
+              window.location.href = `/pit/${pitCode}/creator`;
+            } else {
+              status.textContent = 'Not a valid SyncPit QR code';
+            }
+          },
+          (errorMessage) => {
+            // Scanning (no QR code in view)
+            status.textContent = 'Point camera at QR code...';
+          }
+        );
+      } catch (err) {
+        console.error('Failed to start QR scanner:', err);
+        status.textContent = 'Failed to access camera. Please check permissions.';
+      }
+    };
+
+    window.closeQRScanner = async function() {
+      const modal = document.getElementById('qr-scanner-modal');
+      const status = document.getElementById('scanner-status');
+
+      if (html5QrCode) {
+        try {
+          await html5QrCode.stop();
+          html5QrCode = null;
+        } catch (err) {
+          console.error('Failed to stop QR scanner:', err);
+        }
+      }
+
+      modal.classList.remove('active');
+      status.textContent = 'Point camera at QR code...';
+    };
+
     function openModal() {
       document.getElementById('info-modal').classList.add('active');
     }
@@ -338,17 +445,24 @@
       document.getElementById('info-modal').classList.remove('active');
     }
 
-    // Close modal when clicking outside
+    // Close modals when clicking outside
     document.getElementById('info-modal').addEventListener('click', function(e) {
       if (e.target === this) {
         closeModal();
       }
     });
 
-    // Close modal with Escape key
+    document.getElementById('qr-scanner-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeQRScanner();
+      }
+    });
+
+    // Close modals with Escape key
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         closeModal();
+        closeQRScanner();
       }
     });
   </script>
