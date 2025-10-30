@@ -508,6 +508,82 @@
       font-size: 0.85rem;
       margin-bottom: 20px;
     }
+
+    .pit-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .share-dropdown {
+      display: none;
+      position: absolute;
+      top: 40px;
+      left: 0;
+      background: #000;
+      border: 3px solid #fff;
+      z-index: 200;
+      min-width: 350px;
+      padding: 20px;
+    }
+
+    .share-dropdown.active {
+      display: block;
+    }
+
+    .share-dropdown-content {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .share-qr {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 180px;
+    }
+
+    .share-qr canvas {
+      border: 2px solid #fff;
+      padding: 10px;
+      background: #fff;
+      max-width: 180px;
+      height: auto;
+    }
+
+    .share-link-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .share-link-row input {
+      flex: 1;
+      background: #000;
+      color: #fff;
+      border: 2px solid #fff;
+      padding: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+    }
+
+    .share-link-row input:focus {
+      outline: none;
+      border-color: #0ff;
+    }
+
+    .share-link-row .copy-btn {
+      font-size: 11px;
+      padding: 8px 12px;
+      white-space: nowrap;
+    }
+
+    #copyLinkBtn.copied {
+      background: #0f0;
+      color: #000;
+      border-color: #0f0;
+    }
   </style>
 </head>
 <body>
@@ -515,8 +591,19 @@
     <div id="info">
       <div class="info-group">
         <span id="pitLabel" title="Back to home">SYNC PIT</span>
-        <div class="pit-tag" id="pitTag" title="Click to copy link">
-          <span class="pit-label">pit</span><span class="pit-separator">:</span><span id="slug" class="pit-slug"></span>
+        <div class="pit-wrapper">
+          <div class="pit-tag" id="pitTag" title="Click to share">
+            <span class="pit-label">pit</span><span class="pit-separator">:</span><span id="slug" class="pit-slug"></span>
+          </div>
+          <div class="share-dropdown" id="shareDropdown">
+            <div class="share-dropdown-content">
+              <div class="share-qr" id="qrcode"></div>
+              <div class="share-link-row">
+                <input type="text" id="shareLinkInput" readonly>
+                <button class="copy-btn" id="copyLinkBtn">COPY</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="role-wrapper">

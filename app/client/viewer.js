@@ -1,5 +1,6 @@
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
+import QRCode from 'qrcode';
     // Generate or retrieve user handle
     function getUserHandle() {
       let handle = localStorage.getItem('syncpit-user-handle');
@@ -21,19 +22,82 @@ import { WebsocketProvider } from 'y-websocket';
     const userHandleEl = document.getElementById('userHandle');
     userHandleEl.textContent = userHandle;
 
-    // Copy link functionality - click on pit tag to copy
+    // Share dropdown functionality
     const pitTag = document.getElementById('pitTag');
-    pitTag.addEventListener('click', async () => {
+    const shareDropdown = document.getElementById('shareDropdown');
+    const shareLinkInput = document.getElementById('shareLinkInput');
+    const qrcodeContainer = document.getElementById('qrcode');
+    const copyLinkBtn = document.getElementById('copyLinkBtn');
+
+    async function toggleShareDropdown(e) {
+      e.stopPropagation();
+
+      // If already open, close it
+      if (shareDropdown.classList.contains('active')) {
+        closeShareDropdown();
+        return;
+      }
+
       // Copy viewer link with follow parameter if we're following someone
       let viewerUrl = window.location.origin + '/pit/' + pitSlug + '/viewer';
       if (followingHandle) {
         viewerUrl += '?f=' + followingHandle;
       }
+
+      // Set the link in the input
+      shareLinkInput.value = viewerUrl;
+
+      // Clear previous QR code
+      qrcodeContainer.innerHTML = '';
+
+      // Generate QR code
       try {
-        await navigator.clipboard.writeText(viewerUrl);
-        pitTag.classList.add('copied');
+        await QRCode.toCanvas(viewerUrl, {
+          width: 180,
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#ffffff'
+          }
+        }).then(canvas => {
+          qrcodeContainer.appendChild(canvas);
+        });
+      } catch (err) {
+        console.error('Failed to generate QR code:', err);
+        qrcodeContainer.innerHTML = '<p style="color: #f00; font-size: 11px;">QR generation failed</p>';
+      }
+
+      // Show dropdown
+      shareDropdown.classList.add('active');
+    }
+
+    function closeShareDropdown() {
+      shareDropdown.classList.remove('active');
+      copyLinkBtn.classList.remove('copied');
+      copyLinkBtn.textContent = 'COPY';
+    }
+
+    pitTag.addEventListener('click', toggleShareDropdown);
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!shareDropdown.contains(e.target) && e.target !== pitTag) {
+        closeShareDropdown();
+      }
+    });
+
+    shareDropdown.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    copyLinkBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(shareLinkInput.value);
+        copyLinkBtn.classList.add('copied');
+        copyLinkBtn.textContent = 'COPIED!';
         setTimeout(() => {
-          pitTag.classList.remove('copied');
+          copyLinkBtn.classList.remove('copied');
+          copyLinkBtn.textContent = 'COPY';
         }, 2000);
       } catch (err) {
         console.error('Failed to copy:', err);
