@@ -776,6 +776,134 @@ import QRCode from 'qrcode';
       }
     });
 
+    // Touch support with pinch-to-zoom and two-finger pan
+    let touchStartDistance = 0;
+    let touchStartScale = 1;
+    let touchStartCenter = { x: 0, y: 0 };
+    let touchPanStart = { x: 0, y: 0 };
+    let isTouchPanning = false;
+
+    function getTouchDistance(touch1, touch2) {
+      const dx = touch1.clientX - touch2.clientX;
+      const dy = touch1.clientY - touch2.clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function getTouchCenter(touch1, touch2, rect) {
+      return {
+        x: ((touch1.clientX + touch2.clientX) / 2) - rect.left,
+        y: ((touch1.clientY + touch2.clientY) / 2) - rect.top
+      };
+    }
+
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+
+      if (e.touches.length === 2) {
+        // Two-finger gesture: prepare for pinch zoom or pan
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+
+        touchStartDistance = getTouchDistance(touch1, touch2);
+        touchStartScale = viewport.scale;
+
+        const center = getTouchCenter(touch1, touch2, rect);
+        touchStartCenter = center;
+        touchPanStart = { x: center.x, y: center.y };
+        isTouchPanning = true;
+
+        // Disable follow mode on manual interaction
+        if (isFollowing) {
+          isFollowing = false;
+          followingHandle = null;
+          followingClientID = null;
+          followBtn.textContent = 'FOLLOW';
+        }
+      } else if (e.touches.length === 1) {
+        // Single finger: pan
+        const touch = e.touches[0];
+        const screenX = touch.clientX - rect.left;
+        const screenY = touch.clientY - rect.top;
+
+        isPanning = true;
+        panStart = { x: screenX, y: screenY };
+        canvas.classList.add('panning');
+
+        // Disable follow mode on manual interaction
+        if (isFollowing) {
+          isFollowing = false;
+          followingHandle = null;
+          followingClientID = null;
+          followBtn.textContent = 'FOLLOW';
+        }
+      }
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+
+      if (e.touches.length === 2 && isTouchPanning) {
+        // Two-finger gesture: pinch zoom and pan
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+
+        // Calculate pinch zoom
+        const currentDistance = getTouchDistance(touch1, touch2);
+        const scaleChange = currentDistance / touchStartDistance;
+        const newScale = Math.min(Math.max(touchStartScale * scaleChange, 0.1), 10);
+
+        // Get current center
+        const currentCenter = getTouchCenter(touch1, touch2, rect);
+
+        // Calculate zoom around the pinch center
+        const worldBefore = screenToWorld(touchStartCenter.x, touchStartCenter.y);
+        viewport.scale = newScale;
+        const worldAfter = screenToWorld(touchStartCenter.x, touchStartCenter.y);
+
+        // Adjust for zoom
+        viewport.offsetX += (worldAfter.x - worldBefore.x) * viewport.scale;
+        viewport.offsetY += (worldAfter.y - worldBefore.y) * viewport.scale;
+
+        // Apply pan based on center movement
+        const panDx = currentCenter.x - touchPanStart.x;
+        const panDy = currentCenter.y - touchPanStart.y;
+        viewport.offsetX += panDx;
+        viewport.offsetY += panDy;
+        touchPanStart = currentCenter;
+
+        updateZoomDisplay();
+        redrawCanvas();
+      } else if (e.touches.length === 1 && isPanning) {
+        // Single finger: pan
+        const touch = e.touches[0];
+        const screenX = touch.clientX - rect.left;
+        const screenY = touch.clientY - rect.top;
+
+        const dx = screenX - panStart.x;
+        const dy = screenY - panStart.y;
+        viewport.offsetX += dx;
+        viewport.offsetY += dy;
+        panStart = { x: screenX, y: screenY };
+        redrawCanvas();
+      }
+    });
+
+    canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+
+      if (e.touches.length < 2) {
+        isTouchPanning = false;
+      }
+
+      if (e.touches.length === 0) {
+        // All fingers lifted
+        isPanning = false;
+        canvas.classList.remove('panning');
+      }
+    });
+
     // Handle window resize
     window.addEventListener('resize', () => {
       canvas.width = window.innerWidth;

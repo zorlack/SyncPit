@@ -262,11 +262,13 @@
         <button>CREATE</button>
       </div>
 
-      <div class="action-box" onclick="toggleJumpForm()">
-        <h2>Jump In</h2>
-        <p>Got a pit code? Enter it here.</p>
-        <button id="jump-btn">JUMP</button>
-        <div class="jump-form" id="jump-form">
+      <div class="action-box">
+        <div onclick="toggleJumpForm()">
+          <h2>Jump In</h2>
+          <p>Got a pit code? Enter it here.</p>
+          <button id="jump-btn">JUMP</button>
+        </div>
+        <div class="jump-form" id="jump-form" onclick="event.stopPropagation()">
           <input
             type="text"
             id="pit-code"
