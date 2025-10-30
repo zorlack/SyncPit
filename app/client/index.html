@@ -192,16 +192,19 @@
       color: #fff;
     }
 
-    .jump-form {
+    .jump-form,
+    .create-form {
       display: none;
       margin-top: 20px;
     }
 
-    .jump-form.active {
+    .jump-form.active,
+    .create-form.active {
       display: block;
     }
 
-    .jump-form input {
+    .jump-form input,
+    .create-form select {
       background: #000;
       color: #fff;
       border: 2px solid #fff;
@@ -212,7 +215,8 @@
       margin-bottom: 10px;
     }
 
-    .action-box:hover .jump-form input {
+    .action-box:hover .jump-form input,
+    .action-box:hover .create-form select {
       background: #fff;
       color: #000;
       border-color: #000;
@@ -256,16 +260,24 @@
     </header>
 
     <div class="actions">
-      <div class="action-box" onclick="createPit()">
+      <div class="action-box">
         <h2>Create a Pit</h2>
         <p>Start fresh. Get a link. Share it.</p>
-        <button>CREATE</button>
+        <button id="create-btn" onclick="toggleCreateForm()">CREATE</button>
+        <div class="create-form" id="create-form">
+          <select id="background-select">
+            <option value="">No Background</option>
+            <option value="paper-plain">Plain Paper</option>
+            <option value="paper-graph">Graph Paper</option>
+          </select>
+          <button onclick="createPit()" style="width: 100%;">GO</button>
+        </div>
       </div>
 
-      <div class="action-box" onclick="toggleJumpForm()">
+      <div class="action-box">
         <h2>Jump In</h2>
         <p>Got a pit code? Enter it here.</p>
-        <button id="jump-btn">JUMP</button>
+        <button id="jump-btn" onclick="toggleJumpForm()">JUMP</button>
         <div class="jump-form" id="jump-form">
           <input
             type="text"
@@ -300,7 +312,26 @@
     function createPit() {
       // Generate a random pit slug
       const slug = Math.random().toString(36).substring(2, 10);
-      window.location.href = `/pit/${slug}/creator`;
+      const background = document.getElementById('background-select').value;
+      let url = `/pit/${slug}/creator`;
+      if (background) {
+        url += `?bg=${background}`;
+      }
+      window.location.href = url;
+    }
+
+    function toggleCreateForm() {
+      const form = document.getElementById('create-form');
+      const btn = document.getElementById('create-btn');
+
+      if (form.classList.contains('active')) {
+        form.classList.remove('active');
+        btn.textContent = 'CREATE';
+      } else {
+        form.classList.add('active');
+        btn.textContent = 'CANCEL';
+        setTimeout(() => document.getElementById('background-select').focus(), 100);
+      }
     }
 
     function toggleJumpForm() {

@@ -205,11 +205,54 @@ import { WebsocketProvider } from 'y-websocket';
     awareness.setLocalStateField('role', 'viewer');
     awareness.setLocalStateField('userHandle', userHandle);
 
+    // Background images cache
+    const backgroundImages = {};
+    const backgroundPatterns = {};
+
+    // Load background images
+    function loadBackgroundImage(name) {
+      return new Promise((resolve, reject) => {
+        if (backgroundImages[name]) {
+          resolve(backgroundImages[name]);
+          return;
+        }
+        const img = new Image();
+        img.onload = () => {
+          backgroundImages[name] = img;
+          resolve(img);
+        };
+        img.onerror = reject;
+        img.src = `/images/${name}.png`;
+      });
+    }
+
+    // Get or create background pattern
+    function getBackgroundPattern(name) {
+      if (backgroundPatterns[name]) {
+        return backgroundPatterns[name];
+      }
+      if (backgroundImages[name]) {
+        backgroundPatterns[name] = ctx.createPattern(backgroundImages[name], 'repeat');
+        return backgroundPatterns[name];
+      }
+      return null;
+    }
+
     provider.on('status', event => {
       const statusText = document.getElementById('statusText');
       if (event.status === 'connected') {
         statusText.textContent = 'Connected';
         statusText.className = 'connected';
+
+        // Preload background images if needed
+        const bg = metadata.get('background');
+        if (bg && bg !== '#ffffff') {
+          loadBackgroundImage(bg).then(() => {
+            redrawCanvas();
+          }).catch(err => {
+            console.error('Failed to load background:', err);
+          });
+        }
       } else {
         statusText.textContent = 'Disconnected';
         statusText.className = 'disconnected';
@@ -566,10 +609,55 @@ import { WebsocketProvider } from 'y-websocket';
     function redrawCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Fill with background color (default to white if not set)
-      const bgColor = metadata.get('background') || '#ffffff';
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Fill with background (image pattern or color)
+      const bg = metadata.get('background') || '#ffffff';
+
+      if (bg.startsWith('#')) {
+        // Solid color background
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else if (bg) {
+        // Background image/pattern - needs to scale with viewport
+        const img = backgroundImages[bg];
+        if (img) {
+          // Save context state
+          ctx.save();
+
+          // Apply viewport transform
+          ctx.translate(viewport.offsetX, viewport.offsetY);
+          ctx.scale(viewport.scale, viewport.scale);
+
+          // Calculate how many tiles we need to cover the visible area
+          // Convert screen space to world space for the visible area
+          const topLeft = screenToWorld(0, 0);
+          const bottomRight = screenToWorld(canvas.width, canvas.height);
+
+          // Calculate tile coverage with some padding
+          const padding = img.width * 2;
+          const startX = Math.floor(topLeft.x / img.width) * img.width - padding;
+          const startY = Math.floor(topLeft.y / img.height) * img.height - padding;
+          const endX = Math.ceil(bottomRight.x / img.width) * img.width + padding;
+          const endY = Math.ceil(bottomRight.y / img.height) * img.height + padding;
+
+          // Draw tiles to cover the visible area
+          for (let x = startX; x < endX; x += img.width) {
+            for (let y = startY; y < endY; y += img.height) {
+              ctx.drawImage(img, x, y);
+            }
+          }
+
+          // Restore context state
+          ctx.restore();
+        } else {
+          // Fallback to white if image not loaded yet
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+      } else {
+        // Default white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
 
       strokes.forEach(stroke => drawStroke(stroke));
     }
