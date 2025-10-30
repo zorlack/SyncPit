@@ -1,27 +1,153 @@
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 
+// Generate or retrieve user handle
+function getUserHandle() {
+  let handle = localStorage.getItem('syncpit-user-handle');
+  if (!handle) {
+    handle = Math.random().toString(36).substring(2, 8);
+    localStorage.setItem('syncpit-user-handle', handle);
+  }
+  return handle;
+}
+
+const userHandle = getUserHandle();
+
 // Extract pit slug from URL
 const pitSlug = window.location.pathname.split('/')[2];
 const slugEl = document.getElementById('slug');
 slugEl.textContent = pitSlug;
 
-// Copy link functionality - click on slug to copy
-slugEl.addEventListener('click', async () => {
-  // Always copy viewer link
-  const viewerUrl = window.location.origin + '/pit/' + pitSlug + '/viewer';
+// Update user handle display
+const userHandleEl = document.getElementById('userHandle');
+userHandleEl.textContent = userHandle;
+
+// Copy link functionality - click on pit tag to copy
+const pitTag = document.getElementById('pitTag');
+pitTag.addEventListener('click', async () => {
+  // Always copy viewer link with follow parameter
+  const viewerUrl = window.location.origin + '/pit/' + pitSlug + '/viewer?f=' + userHandle;
   try {
     await navigator.clipboard.writeText(viewerUrl);
-    const originalText = slugEl.textContent;
-    slugEl.textContent = 'COPIED!';
-    slugEl.classList.add('copied');
+    pitTag.classList.add('copied');
     setTimeout(() => {
-      slugEl.textContent = originalText;
-      slugEl.classList.remove('copied');
+      pitTag.classList.remove('copied');
     }, 2000);
   } catch (err) {
     console.error('Failed to copy:', err);
   }
+});
+
+// SYNC PIT home link with confirmation
+const pitLabel = document.getElementById('pitLabel');
+pitLabel.addEventListener('click', () => {
+  const confirmed = confirm('Are you sure you want to leave this pit and go back home?');
+  if (confirmed) {
+    window.location.href = '/';
+  }
+});
+
+// Role dropdown functionality
+const roleTag = document.getElementById('roleTag');
+const roleDropdown = document.getElementById('roleDropdown');
+
+function toggleRoleDropdown() {
+  roleDropdown.classList.toggle('active');
+}
+
+function closeRoleDropdown() {
+  roleDropdown.classList.remove('active');
+}
+
+roleTag.addEventListener('click', (e) => {
+  e.stopPropagation();
+  toggleRoleDropdown();
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', () => {
+  closeRoleDropdown();
+});
+
+roleDropdown.addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+
+// Handle change modal
+const handleModal = document.getElementById('handleModal');
+const handleInput = document.getElementById('handleInput');
+const handleError = document.getElementById('handleError');
+
+function openHandleModal() {
+  handleInput.value = userHandle;
+  handleError.textContent = '';
+  handleModal.classList.add('active');
+  setTimeout(() => handleInput.focus(), 100);
+}
+
+function closeHandleModal() {
+  handleModal.classList.remove('active');
+}
+
+function validateHandle(handle) {
+  if (!handle || handle.length === 0) {
+    return 'Handle cannot be empty';
+  }
+  if (!/^[a-zA-Z0-9._-]+$/.test(handle)) {
+    return 'Only letters, numbers, dots, hyphens, and underscores allowed';
+  }
+  return null;
+}
+
+// Change Handle
+document.getElementById('changeHandleBtn').addEventListener('click', () => {
+  openHandleModal();
+  closeRoleDropdown();
+});
+
+document.getElementById('closeHandleModal').addEventListener('click', closeHandleModal);
+
+document.getElementById('cancelHandleBtn').addEventListener('click', closeHandleModal);
+
+document.getElementById('saveHandleBtn').addEventListener('click', () => {
+  const newHandle = handleInput.value.trim();
+  const error = validateHandle(newHandle);
+
+  if (error) {
+    handleError.textContent = error;
+    return;
+  }
+
+  localStorage.setItem('syncpit-user-handle', newHandle);
+  userHandleEl.textContent = newHandle;
+  awareness.setLocalStateField('userHandle', newHandle);
+  closeHandleModal();
+});
+
+// Allow Enter key to save
+handleInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('saveHandleBtn').click();
+  }
+});
+
+// Real-time validation feedback
+handleInput.addEventListener('input', () => {
+  const handle = handleInput.value.trim();
+  const error = validateHandle(handle);
+  handleError.textContent = error || '';
+});
+
+// Close modal on click outside
+handleModal.addEventListener('click', (e) => {
+  if (e.target === handleModal) {
+    closeHandleModal();
+  }
+});
+
+// Switch to Viewer
+document.getElementById('switchViewerBtn').addEventListener('click', () => {
+  window.location.href = `/pit/${pitSlug}/viewer`;
 });
 
 // Setup canvas
@@ -32,7 +158,7 @@ canvas.height = window.innerHeight - 60;
 
 // Drawing state
 let isDrawing = false;
-let currentColor = '#000000';
+let currentColor = '#8338ec';
 let currentTool = 'pen';
 let lineWidth = 3;
 
@@ -72,6 +198,9 @@ const ydoc = new Y.Doc();
 const strokes = ydoc.getArray('strokes');
 const metadata = ydoc.getMap('metadata');
 
+// Undo/Redo manager
+const undoManager = new Y.UndoManager(strokes);
+
 // WebSocket connection
 const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const wsUrl = `${wsProtocol}//${window.location.host}`;
@@ -80,6 +209,7 @@ const provider = new WebsocketProvider(wsUrl, pitSlug, ydoc);
 // Awareness for ephemeral state (cursor, viewport)
 const awareness = provider.awareness;
 awareness.setLocalStateField('role', 'creator');
+awareness.setLocalStateField('userHandle', userHandle);
 awareness.setLocalStateField('viewport', viewport);
 
 // Broadcast viewport changes
@@ -114,6 +244,53 @@ document.getElementById('eraserBtn').addEventListener('click', () => {
   currentTool = 'eraser';
   document.getElementById('eraserBtn').classList.add('active');
   document.getElementById('penBtn').classList.remove('active');
+});
+
+// Undo/Redo buttons
+const undoBtn = document.getElementById('undoBtn');
+const redoBtn = document.getElementById('redoBtn');
+
+function updateUndoRedoButtons() {
+  undoBtn.disabled = !undoManager.canUndo();
+  redoBtn.disabled = !undoManager.canRedo();
+}
+
+undoBtn.addEventListener('click', () => {
+  undoManager.undo();
+  updateUndoRedoButtons();
+  redrawCanvas();
+});
+
+redoBtn.addEventListener('click', () => {
+  undoManager.redo();
+  updateUndoRedoButtons();
+  redrawCanvas();
+});
+
+// Listen for undo manager changes
+undoManager.on('stack-item-added', updateUndoRedoButtons);
+undoManager.on('stack-item-popped', updateUndoRedoButtons);
+
+// Keyboard shortcuts for undo/redo
+window.addEventListener('keydown', (e) => {
+  // Ctrl+Z or Cmd+Z for undo
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+    e.preventDefault();
+    if (undoManager.canUndo()) {
+      undoManager.undo();
+      updateUndoRedoButtons();
+      redrawCanvas();
+    }
+  }
+  // Ctrl+Y or Cmd+Y or Ctrl+Shift+Z for redo
+  else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+    e.preventDefault();
+    if (undoManager.canRedo()) {
+      undoManager.redo();
+      updateUndoRedoButtons();
+      redrawCanvas();
+    }
+  }
 });
 
 // Color picker
@@ -460,6 +637,7 @@ canvas.addEventListener('mouseup', (e) => {
     strokes.push([currentStroke]);
     isDrawing = false;
     currentStroke = null;
+    updateUndoRedoButtons();
   }
 });
 
@@ -473,6 +651,7 @@ canvas.addEventListener('mouseleave', () => {
     strokes.push([currentStroke]);
     isDrawing = false;
     currentStroke = null;
+    updateUndoRedoButtons();
   }
 });
 
@@ -568,6 +747,7 @@ canvas.addEventListener('touchend', (e) => {
     strokes.push([currentStroke]);
     isDrawing = false;
     currentStroke = null;
+    updateUndoRedoButtons();
   }
 });
 
@@ -576,6 +756,83 @@ window.addEventListener('resize', () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight - 60;
   redrawCanvas();
+});
+
+// Fixed color palette (20 distinct colors)
+const colorPalette = [
+  '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+  '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788',
+  '#E56B6F', '#6A4C93', '#F72585', '#7209B7', '#3A86FF',
+  '#FB5607', '#FFBE0B', '#8338EC', '#06FFA5', '#FF006E'
+];
+
+// Track color assignments
+const userColors = new Map(); // clientID -> color
+let nextColorIndex = 0;
+
+function getColorForClient(clientID, role) {
+  if (role === 'viewer') {
+    return '#999'; // Light gray for viewers
+  }
+
+  if (!userColors.has(clientID)) {
+    userColors.set(clientID, colorPalette[nextColorIndex % colorPalette.length]);
+    nextColorIndex++;
+  }
+  return userColors.get(clientID);
+}
+
+// Cursor elements for each user (keyed by clientID)
+const userCursors = new Map();
+
+function getOrCreateCursor(clientID, handle, role, color) {
+  if (!userCursors.has(clientID)) {
+    const cursor = document.createElement('div');
+    cursor.className = role === 'viewer' ? 'viewer-cursor' : 'creator-cursor';
+    cursor.style.borderColor = color;
+    const label = document.createElement('div');
+    label.className = 'cursor-label';
+    label.style.borderColor = color;
+    label.textContent = `${role}:${handle}`;
+    cursor.appendChild(label);
+    document.body.appendChild(cursor);
+    userCursors.set(clientID, cursor);
+  }
+  return userCursors.get(clientID);
+}
+
+// Listen to awareness changes (other users' cursors)
+awareness.on('change', () => {
+  const states = awareness.getStates();
+  const myClientID = awareness.clientID;
+  const activeClientIDs = new Set();
+
+  // Process all users except ourselves
+  for (const [clientID, state] of states) {
+    if (clientID === myClientID) continue; // Don't show our own cursor
+
+    if (state.userHandle && state.cursor) {
+      activeClientIDs.add(clientID);
+
+      const color = getColorForClient(clientID, state.role);
+      const cursor = getOrCreateCursor(clientID, state.userHandle, state.role, color);
+      const screenPos = worldToScreen(state.cursor.x, state.cursor.y);
+      const rect = canvas.getBoundingClientRect();
+
+      cursor.style.left = (rect.left + screenPos.x) + 'px';
+      cursor.style.top = (rect.top + screenPos.y + 60) + 'px';
+      cursor.style.display = 'block';
+    }
+  }
+
+  // Remove cursors for users that left
+  for (const [clientID, cursor] of userCursors) {
+    if (!activeClientIDs.has(clientID)) {
+      cursor.remove();
+      userCursors.delete(clientID);
+      userColors.delete(clientID);
+    }
+  }
 });
 
 // Initial draw

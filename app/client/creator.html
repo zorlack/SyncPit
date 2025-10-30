@@ -15,7 +15,7 @@
     }
 
     body {
-      font-family: 'Special Elite', 'Courier New', monospace;
+      font-family: 'Courier New', monospace;
       background: #000;
       color: #fff;
       overflow: hidden;
@@ -41,6 +41,12 @@
       color: #fff;
       display: flex;
       align-items: center;
+      gap: 20px;
+    }
+
+    .info-group {
+      display: flex;
+      align-items: center;
       gap: 10px;
     }
 
@@ -48,25 +54,128 @@
       color: #fff;
       font-weight: bold;
       text-transform: uppercase;
+      font-family: 'Special Elite', 'Courier New', monospace;
+      font-size: 28px;
+      margin-top: 6px;
       text-shadow:
         -2px 0 0 rgba(255, 0, 0, 0.6),
         2px 0 0 rgba(0, 255, 255, 0.6);
-    }
-
-    #slug {
-      color: #999;
-      font-weight: normal;
       cursor: pointer;
       transition: all 0.2s;
     }
 
-    #slug:hover {
-      text-decoration: underline;
-      color: #fff;
+    #pitLabel:hover {
+      transform: scale(1.05);
     }
 
-    #slug.copied {
-      color: #0f0;
+    .pit-tag {
+      background: transparent;
+      border: 2px solid #fff;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.1s;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .pit-tag:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    .pit-tag.copied {
+      background: #0f0;
+      color: #000;
+      border-color: #0f0;
+    }
+
+    .pit-label {
+      font-weight: normal;
+      text-transform: lowercase;
+    }
+
+    .pit-separator {
+      font-weight: normal;
+      margin: 0 2px;
+    }
+
+    .pit-slug {
+      font-weight: bold;
+    }
+
+    .role-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .role-tag {
+      background: transparent;
+      border: 2px solid #fff;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.1s;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .role-tag:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    .role-label {
+      font-weight: normal;
+      text-transform: lowercase;
+    }
+
+    .role-separator {
+      font-weight: normal;
+      margin: 0 2px;
+    }
+
+    .user-handle {
+      font-weight: bold;
+    }
+
+    .role-dropdown {
+      display: none;
+      position: absolute;
+      top: 35px;
+      left: 0;
+      background: #000;
+      border: 2px solid #fff;
+      z-index: 200;
+      min-width: 180px;
+    }
+
+    .role-dropdown.active {
+      display: block;
+    }
+
+    .dropdown-item {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #333;
+      color: #fff;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      text-align: left;
+      transition: all 0.1s;
+    }
+
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown-item:hover {
+      background: #fff;
+      color: #000;
     }
 
     .copy-btn {
@@ -75,8 +184,8 @@
       color: #fff;
       padding: 4px 10px;
       cursor: pointer;
+      font-family: 'Courier New', monospace;
       font-size: 12px;
-      font-family: 'Special Elite', monospace;
       transition: all 0.1s;
     }
 
@@ -104,8 +213,8 @@
       padding: 0 16px;
       height: 36px;
       cursor: pointer;
+      font-family: 'Courier New', monospace;
       font-size: 13px;
-      font-family: 'Special Elite', monospace;
       transition: all 0.1s;
       display: inline-flex;
       align-items: center;
@@ -156,7 +265,7 @@
       border: 2px solid #fff;
       cursor: pointer;
       transition: all 0.1s;
-      background: #000;
+      background: #8338ec;
     }
 
     .color-btn:hover {
@@ -247,6 +356,31 @@
     .connected { color: #0f0; }
     .disconnected { color: #f00; }
 
+    .creator-cursor,
+    .viewer-cursor {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border: 2px solid;
+      border-radius: 50%;
+      pointer-events: none;
+      display: none;
+      transform: translate(-50%, -50%);
+      z-index: 1000;
+    }
+
+    .cursor-label {
+      position: absolute;
+      top: 15px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid;
+      padding: 2px 6px;
+      font-size: 10px;
+      white-space: nowrap;
+      color: #fff;
+    }
+
     .modal {
       display: none;
       position: fixed;
@@ -255,7 +389,7 @@
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.95);
-      z-index: 1000;
+      z-index: 2000;
       justify-content: center;
       align-items: center;
       padding: 20px;
@@ -283,9 +417,9 @@
       border: 2px solid #fff;
       width: 40px;
       height: 40px;
+      font-family: 'Courier New', monospace;
       font-size: 1.5rem;
       cursor: pointer;
-      font-family: 'Special Elite', monospace;
     }
 
     .modal-close:hover {
@@ -315,8 +449,8 @@
       color: #fff;
       padding: 15px 30px;
       cursor: pointer;
+      font-family: 'Courier New', monospace;
       font-size: 1rem;
-      font-family: 'Special Elite', monospace;
       transition: all 0.1s;
       text-transform: uppercase;
     }
@@ -345,13 +479,55 @@
       background: #0f0;
       color: #000;
     }
+
+    .modal input[type="text"] {
+      background: #000;
+      color: #fff;
+      border: 2px solid #fff;
+      padding: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .modal input[type="text"]:focus {
+      outline: none;
+      border-color: #0ff;
+    }
+
+    .modal .error-msg {
+      color: #f00;
+      font-size: 0.85rem;
+      margin-bottom: 15px;
+      min-height: 20px;
+    }
+
+    .modal .help-text {
+      color: #999;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
   <div id="header">
     <div id="info">
-      <span id="pitLabel">Pit</span>
-      <span id="slug" title="Click to copy link"></span>
+      <div class="info-group">
+        <span id="pitLabel" title="Back to home">SYNC PIT</span>
+        <div class="pit-tag" id="pitTag" title="Click to copy link">
+          <span class="pit-label">pit</span><span class="pit-separator">:</span><span id="slug" class="pit-slug"></span>
+        </div>
+      </div>
+      <div class="role-wrapper">
+        <div class="role-tag" id="roleTag" title="Click for options">
+          <span class="role-label">creator</span><span class="role-separator">:</span><span id="userHandle" class="user-handle"></span>
+        </div>
+        <div class="role-dropdown" id="roleDropdown">
+          <button class="dropdown-item" id="changeHandleBtn">Change Handle</button>
+          <button class="dropdown-item" id="switchViewerBtn">Switch to Viewer</button>
+        </div>
+      </div>
     </div>
     <div id="tools">
       <button class="tool-btn active" id="penBtn">PEN</button>
@@ -372,10 +548,22 @@
           <div class="swatch" style="background: #ff006e;" data-color="#ff006e"></div>
           <div class="swatch" style="background: #8338ec;" data-color="#8338ec"></div>
           <div class="swatch custom">
-            <input type="color" id="customColorPicker" value="#000000">
+            <input type="color" id="customColorPicker" value="#8338ec">
           </div>
         </div>
       </div>
+      <button class="tool-btn icon-btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 7v6h6"/>
+          <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+        </svg>
+      </button>
+      <button class="tool-btn icon-btn" id="redoBtn" title="Redo (Ctrl+Y)" disabled>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 7v6h-6"/>
+          <path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/>
+        </svg>
+      </button>
       <button class="tool-btn icon-btn" id="exportBtn" title="Export View">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="2" y="6" width="20" height="14" rx="2"/>
@@ -413,6 +601,20 @@
         <button class="modal-btn save" id="saveBeforeBailBtn">💾 Save First!</button>
         <button class="modal-btn danger" id="flushBtn">🔥 Flush the Pit</button>
         <button class="modal-btn" id="bailHomeBtn">👋 Bail</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="handleModal">
+    <div class="modal-content">
+      <button class="modal-close" id="closeHandleModal">×</button>
+      <h2>Change Handle</h2>
+      <p class="help-text">Max 16 characters. Only letters, numbers, dots, hyphens, and underscores.</p>
+      <input type="text" id="handleInput" maxlength="16" placeholder="your-handle">
+      <div class="error-msg" id="handleError"></div>
+      <div class="modal-actions">
+        <button class="modal-btn save" id="saveHandleBtn">Save Handle</button>
+        <button class="modal-btn" id="cancelHandleBtn">Cancel</button>
       </div>
     </div>
   </div>

@@ -1,26 +1,152 @@
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
+    // Generate or retrieve user handle
+    function getUserHandle() {
+      let handle = localStorage.getItem('syncpit-user-handle');
+      if (!handle) {
+        handle = Math.random().toString(36).substring(2, 8);
+        localStorage.setItem('syncpit-user-handle', handle);
+      }
+      return handle;
+    }
+
+    const userHandle = getUserHandle();
+
     // Extract pit slug from URL
     const pitSlug = window.location.pathname.split('/')[2];
     const slugEl = document.getElementById('slug');
     slugEl.textContent = pitSlug;
 
-    // Copy link functionality - click on slug to copy
-    slugEl.addEventListener('click', async () => {
-      // Always copy viewer link
-      const viewerUrl = window.location.origin + '/pit/' + pitSlug + '/viewer';
+    // Update user handle display
+    const userHandleEl = document.getElementById('userHandle');
+    userHandleEl.textContent = userHandle;
+
+    // Copy link functionality - click on pit tag to copy
+    const pitTag = document.getElementById('pitTag');
+    pitTag.addEventListener('click', async () => {
+      // Copy viewer link with follow parameter if we're following someone
+      let viewerUrl = window.location.origin + '/pit/' + pitSlug + '/viewer';
+      if (followingHandle) {
+        viewerUrl += '?f=' + followingHandle;
+      }
       try {
         await navigator.clipboard.writeText(viewerUrl);
-        const originalText = slugEl.textContent;
-        slugEl.textContent = 'COPIED!';
-        slugEl.classList.add('copied');
+        pitTag.classList.add('copied');
         setTimeout(() => {
-          slugEl.textContent = originalText;
-          slugEl.classList.remove('copied');
+          pitTag.classList.remove('copied');
         }, 2000);
       } catch (err) {
         console.error('Failed to copy:', err);
       }
+    });
+
+    // SYNC PIT home link (no confirmation needed for viewers)
+    const pitLabel = document.getElementById('pitLabel');
+    pitLabel.addEventListener('click', () => {
+      window.location.href = '/';
+    });
+
+    // Role dropdown functionality
+    const roleTag = document.getElementById('roleTag');
+    const roleDropdown = document.getElementById('roleDropdown');
+
+    function toggleRoleDropdown() {
+      roleDropdown.classList.toggle('active');
+    }
+
+    function closeRoleDropdown() {
+      roleDropdown.classList.remove('active');
+    }
+
+    roleTag.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleRoleDropdown();
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+      closeRoleDropdown();
+    });
+
+    roleDropdown.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    // Handle change modal
+    const handleModal = document.getElementById('handleModal');
+    const handleInput = document.getElementById('handleInput');
+    const handleError = document.getElementById('handleError');
+
+    function openHandleModal() {
+      handleInput.value = userHandle;
+      handleError.textContent = '';
+      handleModal.classList.add('active');
+      setTimeout(() => handleInput.focus(), 100);
+    }
+
+    function closeHandleModal() {
+      handleModal.classList.remove('active');
+    }
+
+    function validateHandle(handle) {
+      if (!handle || handle.length === 0) {
+        return 'Handle cannot be empty';
+      }
+      if (!/^[a-zA-Z0-9._-]+$/.test(handle)) {
+        return 'Only letters, numbers, dots, hyphens, and underscores allowed';
+      }
+      return null;
+    }
+
+    // Change Handle
+    document.getElementById('changeHandleBtn').addEventListener('click', () => {
+      openHandleModal();
+      closeRoleDropdown();
+    });
+
+    document.getElementById('closeHandleModal').addEventListener('click', closeHandleModal);
+
+    document.getElementById('cancelHandleBtn').addEventListener('click', closeHandleModal);
+
+    document.getElementById('saveHandleBtn').addEventListener('click', () => {
+      const newHandle = handleInput.value.trim();
+      const error = validateHandle(newHandle);
+
+      if (error) {
+        handleError.textContent = error;
+        return;
+      }
+
+      localStorage.setItem('syncpit-user-handle', newHandle);
+      userHandleEl.textContent = newHandle;
+      awareness.setLocalStateField('userHandle', newHandle);
+      closeHandleModal();
+    });
+
+    // Allow Enter key to save
+    handleInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('saveHandleBtn').click();
+      }
+    });
+
+    // Real-time validation feedback
+    handleInput.addEventListener('input', () => {
+      const handle = handleInput.value.trim();
+      const error = validateHandle(handle);
+      handleError.textContent = error || '';
+    });
+
+    // Close modal on click outside
+    handleModal.addEventListener('click', (e) => {
+      if (e.target === handleModal) {
+        closeHandleModal();
+      }
+    });
+
+    // Switch to Creator
+    document.getElementById('switchCreatorBtn').addEventListener('click', () => {
+      window.location.href = `/pit/${pitSlug}/creator`;
     });
 
     // Setup canvas
@@ -77,6 +203,7 @@ import { WebsocketProvider } from 'y-websocket';
     // Awareness for following creator
     const awareness = provider.awareness;
     awareness.setLocalStateField('role', 'viewer');
+    awareness.setLocalStateField('userHandle', userHandle);
 
     provider.on('status', event => {
       const statusText = document.getElementById('statusText');
@@ -89,19 +216,87 @@ import { WebsocketProvider } from 'y-websocket';
       }
     });
 
-    // Follow mode toggle
+    // Follow mode
     const followBtn = document.getElementById('followBtn');
-    const creatorCursor = document.getElementById('creatorCursor');
+    const followDropdown = document.getElementById('followDropdown');
 
-    followBtn.addEventListener('click', () => {
-      isFollowing = !isFollowing;
-      followBtn.classList.toggle('active', isFollowing);
-      followBtn.textContent = isFollowing ? 'Following...' : 'Follow Creator';
+    // Check for follow parameter in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const autoFollowHandle = urlParams.get('f');
+    let followingHandle = autoFollowHandle || null;
+    let followingClientID = null; // Track which specific client we're following
 
-      if (!isFollowing) {
-        creatorCursor.style.display = 'none';
-      }
+    function toggleFollowDropdown() {
+      followDropdown.classList.toggle('active');
+    }
+
+    function closeFollowDropdown() {
+      followDropdown.classList.remove('active');
+    }
+
+    followBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFollowDropdown();
     });
+
+    followDropdown.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    // Close follow dropdown when clicking outside
+    document.addEventListener('click', () => {
+      closeFollowDropdown();
+    });
+
+    // Update follow dropdown with available creators
+    function updateFollowDropdown() {
+      const states = awareness.getStates();
+      const creators = [];
+
+      for (const [clientID, state] of states) {
+        if (state.role === 'creator' && state.userHandle) {
+          creators.push({
+            clientID,
+            handle: state.userHandle
+          });
+        }
+      }
+
+      followDropdown.innerHTML = '';
+
+      if (creators.length === 0) {
+        const noCreators = document.createElement('div');
+        noCreators.className = 'dropdown-item disabled';
+        noCreators.textContent = 'No creators online';
+        followDropdown.appendChild(noCreators);
+      } else {
+        creators.forEach(creator => {
+          const item = document.createElement('button');
+          item.className = 'dropdown-item';
+          if (followingHandle === creator.handle) {
+            item.classList.add('active');
+          }
+          item.textContent = `creator:${creator.handle}`;
+          item.addEventListener('click', () => {
+            if (followingHandle === creator.handle) {
+              // Stop following
+              followingHandle = null;
+              followingClientID = null;
+              isFollowing = false;
+              followBtn.textContent = 'FOLLOW';
+            } else {
+              // Start following (will pick first matching creator on next update)
+              followingHandle = creator.handle;
+              followingClientID = null; // Reset so we pick the first one
+              isFollowing = false; // Will be set true when we find them
+              followBtn.textContent = `Following ${creator.handle}`;
+            }
+            closeFollowDropdown();
+          });
+          followDropdown.appendChild(item);
+        });
+      }
+    }
 
     // Export button
     document.getElementById('exportBtn').addEventListener('click', () => {
@@ -214,17 +409,88 @@ import { WebsocketProvider } from 'y-websocket';
       });
     });
 
-    // Listen to awareness changes (creator cursor and viewport)
+    // Fixed color palette (20 distinct colors)
+    const colorPalette = [
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+      '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788',
+      '#E56B6F', '#6A4C93', '#F72585', '#7209B7', '#3A86FF',
+      '#FB5607', '#FFBE0B', '#8338EC', '#06FFA5', '#FF006E'
+    ];
+
+    // Track color assignments
+    const creatorColors = new Map(); // clientID -> color
+    let nextColorIndex = 0;
+
+    function getColorForClient(clientID, role) {
+      if (role === 'viewer') {
+        return '#999'; // Light gray for viewers
+      }
+
+      if (!creatorColors.has(clientID)) {
+        creatorColors.set(clientID, colorPalette[nextColorIndex % colorPalette.length]);
+        nextColorIndex++;
+      }
+      return creatorColors.get(clientID);
+    }
+
+    // Cursor elements for each user (keyed by clientID)
+    const userCursors = new Map();
+
+    function getOrCreateCursor(clientID, handle, role, color) {
+      if (!userCursors.has(clientID)) {
+        const cursor = document.createElement('div');
+        cursor.className = role === 'viewer' ? 'viewer-cursor' : 'creator-cursor';
+        cursor.style.borderColor = color;
+        const label = document.createElement('div');
+        label.className = 'cursor-label';
+        label.style.borderColor = color;
+        label.textContent = `${role}:${handle}`;
+        cursor.appendChild(label);
+        document.body.appendChild(cursor);
+        userCursors.set(clientID, cursor);
+      }
+      return userCursors.get(clientID);
+    }
+
+    // Listen to awareness changes (creator cursors and viewports)
     awareness.on('change', () => {
       const states = awareness.getStates();
+      const myClientID = awareness.clientID;
+      updateFollowDropdown();
 
-      // Find creator
+      // Track which clients are still active
+      const activeClientIDs = new Set();
+      let foundFollowingClient = false;
+
+      // Check if we should auto-follow (pick first matching creator)
+      if (followingHandle && !isFollowing && !followingClientID) {
+        for (const [clientID, state] of states) {
+          if (state.role === 'creator' && state.userHandle === followingHandle) {
+            isFollowing = true;
+            followingClientID = clientID;
+            followBtn.textContent = `Following ${followingHandle}`;
+            break; // Pick the first one
+          }
+        }
+      }
+
+      // Process all users except ourselves
       for (const [clientID, state] of states) {
-        if (state.role === 'creator') {
-          creatorState = state;
+        if (clientID === myClientID) continue; // Don't show our own cursor
 
-          // Follow viewport if enabled (do this BEFORE cursor positioning)
-          if (isFollowing && state.viewport) {
+        if (state.userHandle && state.cursor) {
+          activeClientIDs.add(clientID);
+
+          // Check if this is our followed client (only relevant for creators)
+          if (state.role === 'creator' && followingClientID === clientID) {
+            foundFollowingClient = true;
+          }
+
+          // Get color for this client
+          const color = getColorForClient(clientID, state.role);
+
+          // Follow viewport only if this is a creator and the specific client we're following
+          if (state.role === 'creator' && isFollowing && followingClientID === clientID && state.viewport) {
             viewport.offsetX = state.viewport.offsetX;
             viewport.offsetY = state.viewport.offsetY;
             viewport.scale = state.viewport.scale;
@@ -232,17 +498,37 @@ import { WebsocketProvider } from 'y-websocket';
             redrawCanvas();
           }
 
-          // Update cursor position (after viewport sync)
-          if (state.cursor) {
-            const screenPos = worldToScreen(state.cursor.x, state.cursor.y);
-            const rect = canvas.getBoundingClientRect();
+          // Update cursor position and visibility
+          const cursor = getOrCreateCursor(clientID, state.userHandle, state.role, color);
+          const screenPos = worldToScreen(state.cursor.x, state.cursor.y);
+          const rect = canvas.getBoundingClientRect();
 
-            creatorCursor.style.left = (rect.left + screenPos.x) + 'px';
-            creatorCursor.style.top = (rect.top + screenPos.y + 60) + 'px';
-            creatorCursor.style.display = 'block';
+          cursor.style.left = (rect.left + screenPos.x) + 'px';
+          cursor.style.top = (rect.top + screenPos.y + 60) + 'px';
+
+          // Only show cursor if we're not following, or if this is the one we're following
+          if (!isFollowing || followingClientID === clientID) {
+            cursor.style.display = 'block';
+          } else {
+            cursor.style.display = 'none';
           }
+        }
+      }
 
-          break;
+      // If the client we were following disconnected, reset so we can pick another
+      if (followingClientID && !foundFollowingClient) {
+        followingClientID = null;
+        if (followingHandle) {
+          isFollowing = false; // Will re-enable if another matching creator appears
+        }
+      }
+
+      // Remove cursors for users that left
+      for (const [clientID, cursor] of userCursors) {
+        if (!activeClientIDs.has(clientID)) {
+          cursor.remove();
+          userCursors.delete(clientID);
+          creatorColors.delete(clientID);
         }
       }
     });
@@ -324,18 +610,26 @@ import { WebsocketProvider } from 'y-websocket';
         // Disable follow mode on manual interaction
         if (isFollowing) {
           isFollowing = false;
-          followBtn.classList.remove('active');
-          followBtn.textContent = 'Follow Creator';
+          followingHandle = null;
+          followingClientID = null;
+          followBtn.textContent = 'FOLLOW';
         }
       }
     });
 
     canvas.addEventListener('mousemove', (e) => {
-      if (!isPanning) return;
-
       const rect = canvas.getBoundingClientRect();
       const screenX = e.clientX - rect.left;
       const screenY = e.clientY - rect.top;
+
+      // Broadcast cursor position (world coordinates)
+      const worldPos = screenToWorld(screenX, screenY);
+      awareness.setLocalStateField('cursor', {
+        x: worldPos.x,
+        y: worldPos.y
+      });
+
+      if (!isPanning) return;
 
       const dx = screenX - panStart.x;
       const dy = screenY - panStart.y;
@@ -357,6 +651,11 @@ import { WebsocketProvider } from 'y-websocket';
         isPanning = false;
         canvas.classList.remove('panning');
       }
+    });
+
+    // Prevent context menu on right-click
+    canvas.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
     });
 
     // Mouse wheel zoom
@@ -389,8 +688,9 @@ import { WebsocketProvider } from 'y-websocket';
       // Disable follow mode on manual interaction
       if (isFollowing) {
         isFollowing = false;
-        followBtn.classList.remove('active');
-        followBtn.textContent = 'Follow Creator';
+        followingHandle = null;
+        followingClientID = null;
+        followBtn.textContent = 'FOLLOW';
       }
     });
 
