@@ -52,6 +52,22 @@
         -3px 0 0 rgba(255, 0, 0, 0.8),
         3px 0 0 rgba(0, 255, 255, 0.8);
       padding: 0 60px;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.1s, transform 0.1s, filter 0.1s;
+      transform-origin: center center;
+    }
+
+    h1:hover {
+      opacity: 0.8;
+    }
+
+    h1.playing {
+      cursor: alias;
+    }
+
+    h1.animating {
+      transition: transform 0.1s ease-out, filter 0.1s ease-out, opacity 0.1s ease-out;
     }
 
     .tagline {
@@ -306,7 +322,8 @@
   <div class="container">
     <header>
       <button class="info-btn" onclick="openModal()">?</button>
-      <h1>SYNC<br>PIT</h1>
+      <h1 id="logo" onclick="toggleMusic()">SYNC<br>PIT</h1>
+      <audio id="welcomeMusic" src="/SYNC_PIT.mp3" preload="auto"></audio>
       <div class="tagline">Draw fast. Sync faster. Bail whenever.</div>
     </header>
 
@@ -373,6 +390,169 @@
     document.getElementById('version-info').textContent = `v${__APP_VERSION__}`;
 
     let html5QrCode = null;
+    let loudnessData = null;
+    let animationFrame = null;
+    let lastSampleIndex = -1;
+    let resetTimeout = null;
+
+    // Load loudness data
+    fetch('/SYNC_PIT_loudness.json')
+      .then(res => res.json())
+      .then(data => {
+        loudnessData = data;
+        console.log('Loaded loudness data:', data.metadata.samples, 'samples');
+      })
+      .catch(err => console.error('Failed to load loudness data:', err));
+
+    // Apply animation state
+    function applyLogoAnimation(intensity) {
+      const logo = document.getElementById('logo');
+
+      if (intensity === 0) {
+        // Neutral state
+        logo.style.transform = '';
+        logo.style.textShadow = `
+          -3px 0 0 rgba(255, 0, 0, 0.8),
+          3px 0 0 rgba(0, 255, 255, 0.8)
+        `;
+        logo.style.opacity = '';
+        return;
+      }
+
+      // Calculate variations based on loudness
+      // Scale: contract at low volumes (0.975), expand at high volumes (1.025)
+      const scaleVariation = 0.975 + (intensity * 0.05);
+      const opacityVariation = 0.95 + (intensity * 0.05); // 95% to 100% opacity
+      const rotationVariation = (intensity - 0.5) * 2; // -1 to 1 degrees
+      const chromaticOffset = Math.floor(intensity * 5); // 0 to 5px chromatic aberration
+
+      // Apply transformations
+      logo.style.transform = `scale(${scaleVariation}) rotate(${rotationVariation}deg)`;
+      logo.style.opacity = opacityVariation;
+      logo.style.textShadow = `
+        ${-3 - chromaticOffset}px 0 0 rgba(255, 0, 0, ${0.8 * intensity}),
+        ${3 + chromaticOffset}px 0 0 rgba(0, 255, 255, ${0.8 * intensity})
+      `;
+    }
+
+    // Animation controller
+    function animateLogo() {
+      const audio = document.getElementById('welcomeMusic');
+      const logo = document.getElementById('logo');
+
+      if (!loudnessData || audio.paused || audio.ended) {
+        // Reset to neutral position when stopped
+        if (resetTimeout) {
+          clearTimeout(resetTimeout);
+          resetTimeout = null;
+        }
+        applyLogoAnimation(0);
+        logo.classList.remove('animating');
+        lastSampleIndex = -1;
+        return;
+      }
+
+      logo.classList.add('animating');
+
+      const currentTime = audio.currentTime * 1000; // Convert to milliseconds
+      const sampleInterval = loudnessData.metadata.intervalMs;
+      const halfInterval = sampleInterval / 2;
+
+      // Find the closest sample by searching through timestamps
+      let currentSampleIndex = 0;
+      let minDiff = Math.abs(currentTime - loudnessData.loudness[0].time);
+
+      for (let i = 1; i < loudnessData.loudness.length; i++) {
+        const diff = Math.abs(currentTime - loudnessData.loudness[i].time);
+        if (diff < minDiff) {
+          minDiff = diff;
+          currentSampleIndex = i;
+        } else {
+          // Times are increasing, so we can break early
+          break;
+        }
+      }
+
+      // Check if we're on a new sample
+      if (currentSampleIndex !== lastSampleIndex) {
+        lastSampleIndex = currentSampleIndex;
+        const sample = loudnessData.loudness[currentSampleIndex];
+
+        // Apply exponential curve to reduce motion at lower levels
+        let rawIntensity = sample.normalized;
+
+        // Special emphasis for key moments - wider windows to ensure we catch them
+        const time = sample.time;
+        if ((time >= 830 && time <= 900) || (time >= 1840 && time <= 1910)) {
+          // Boost intensity dramatically for these moments
+          rawIntensity = 3.0; // Way beyond normal range for massive impact
+        }
+
+        // Fade out starting 5 seconds before the end as the music fades
+        let intensity = Math.pow(rawIntensity, 2.5);
+        const fadeStartTime = (loudnessData.metadata.duration - 5) * 1000; // 5 seconds before end
+        if (time >= fadeStartTime) {
+          // Calculate fade factor (1.0 at start of fade, approaching 0 by end)
+          const fadeProgress = (time - fadeStartTime) / 5000; // Fade over 5 seconds
+          const fadeFactor = 1.0 - fadeProgress;
+          intensity *= fadeFactor;
+        }
+
+        // Pulse out to animated state
+        applyLogoAnimation(intensity);
+
+        // Clear any pending reset
+        if (resetTimeout) {
+          clearTimeout(resetTimeout);
+        }
+
+        // Return to neutral after half interval
+        resetTimeout = setTimeout(() => {
+          if (!audio.paused && !audio.ended) {
+            applyLogoAnimation(0);
+          }
+          resetTimeout = null;
+        }, halfInterval);
+      }
+
+      // Continue animation loop
+      animationFrame = requestAnimationFrame(animateLogo);
+    }
+
+    window.toggleMusic = function() {
+      const audio = document.getElementById('welcomeMusic');
+      const logo = document.getElementById('logo');
+
+      if (audio.paused) {
+        audio.play();
+        logo.classList.add('playing');
+
+        // Start animation loop
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+        }
+        animateLogo();
+      } else {
+        audio.pause();
+        audio.currentTime = 0;
+        logo.classList.remove('playing');
+
+        // Stop animation loop
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+          animationFrame = null;
+        }
+
+        // Clear any pending reset
+        if (resetTimeout) {
+          clearTimeout(resetTimeout);
+          resetTimeout = null;
+        }
+
+        // Reset to neutral
+        animateLogo();
+      }
+    };
 
     window.createPit = function() {
       // Generate a random pit slug

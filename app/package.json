@@ -1,6 +1,6 @@
 {
   "name": "@zorlack/syncpit",
-  "version": "0.4.0-alpha.2-2-gbb33d07",
+  "version": "0.4.0-alpha.3",
   "description": "Ephemeral real-time collaborative whiteboard - no accounts, no bullshit",
   "main": "welld.js",
   "bin": {

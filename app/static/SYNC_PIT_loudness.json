@@ -1,0 +1,861 @@
+{
+  "metadata": {
+    "file": "SYNC_PIT.mp3",
+    "duration": 12.19,
+    "intervalMs": 50,
+    "samples": 170,
+    "generated": "2025-10-30T20:19:46.464Z"
+  },
+  "loudness": [
+    {
+      "time": 0,
+      "rmsDb": -12.51,
+      "normalized": 0.791
+    },
+    {
+      "time": 72,
+      "rmsDb": -18.27,
+      "normalized": 0.696
+    },
+    {
+      "time": 144,
+      "rmsDb": -16.82,
+      "normalized": 0.72
+    },
+    {
+      "time": 216,
+      "rmsDb": -15.95,
+      "normalized": 0.734
+    },
+    {
+      "time": 288,
+      "rmsDb": -16.79,
+      "normalized": 0.72
+    },
+    {
+      "time": 360,
+      "rmsDb": -16.88,
+      "normalized": 0.719
+    },
+    {
+      "time": 432,
+      "rmsDb": -15.95,
+      "normalized": 0.734
+    },
+    {
+      "time": 504,
+      "rmsDb": -15,
+      "normalized": 0.75
+    },
+    {
+      "time": 576,
+      "rmsDb": -17.67,
+      "normalized": 0.705
+    },
+    {
+      "time": 648,
+      "rmsDb": -15.3,
+      "normalized": 0.745
+    },
+    {
+      "time": 720,
+      "rmsDb": -14.86,
+      "normalized": 0.752
+    },
+    {
+      "time": 792,
+      "rmsDb": -14.13,
+      "normalized": 0.764
+    },
+    {
+      "time": 864,
+      "rmsDb": -18.25,
+      "normalized": 0.696
+    },
+    {
+      "time": 936,
+      "rmsDb": -14.22,
+      "normalized": 0.763
+    },
+    {
+      "time": 1008,
+      "rmsDb": -14.47,
+      "normalized": 0.759
+    },
+    {
+      "time": 1080,
+      "rmsDb": -16.04,
+      "normalized": 0.733
+    },
+    {
+      "time": 1152,
+      "rmsDb": -16.62,
+      "normalized": 0.723
+    },
+    {
+      "time": 1224,
+      "rmsDb": -19.67,
+      "normalized": 0.672
+    },
+    {
+      "time": 1296,
+      "rmsDb": -23.8,
+      "normalized": 0.603
+    },
+    {
+      "time": 1368,
+      "rmsDb": -24.69,
+      "normalized": 0.588
+    },
+    {
+      "time": 1440,
+      "rmsDb": -31.93,
+      "normalized": 0.468
+    },
+    {
+      "time": 1512,
+      "rmsDb": -33.59,
+      "normalized": 0.44
+    },
+    {
+      "time": 1584,
+      "rmsDb": -32.88,
+      "normalized": 0.452
+    },
+    {
+      "time": 1656,
+      "rmsDb": -36.19,
+      "normalized": 0.397
+    },
+    {
+      "time": 1728,
+      "rmsDb": -43.01,
+      "normalized": 0.283
+    },
+    {
+      "time": 1800,
+      "rmsDb": -42.15,
+      "normalized": 0.297
+    },
+    {
+      "time": 1872,
+      "rmsDb": -26.44,
+      "normalized": 0.559
+    },
+    {
+      "time": 1944,
+      "rmsDb": -13.8,
+      "normalized": 0.77
+    },
+    {
+      "time": 2016,
+      "rmsDb": -15.67,
+      "normalized": 0.739
+    },
+    {
+      "time": 2088,
+      "rmsDb": -16.61,
+      "normalized": 0.723
+    },
+    {
+      "time": 2160,
+      "rmsDb": -17.17,
+      "normalized": 0.714
+    },
+    {
+      "time": 2232,
+      "rmsDb": -19.73,
+      "normalized": 0.671
+    },
+    {
+      "time": 2304,
+      "rmsDb": -23.19,
+      "normalized": 0.613
+    },
+    {
+      "time": 2376,
+      "rmsDb": -30.16,
+      "normalized": 0.497
+    },
+    {
+      "time": 2448,
+      "rmsDb": -34.43,
+      "normalized": 0.426
+    },
+    {
+      "time": 2520,
+      "rmsDb": -32.75,
+      "normalized": 0.454
+    },
+    {
+      "time": 2592,
+      "rmsDb": -38.37,
+      "normalized": 0.36
+    },
+    {
+      "time": 2664,
+      "rmsDb": -43.93,
+      "normalized": 0.268
+    },
+    {
+      "time": 2736,
+      "rmsDb": -43.86,
+      "normalized": 0.269
+    },
+    {
+      "time": 2808,
+      "rmsDb": -35.46,
+      "normalized": 0.409
+    },
+    {
+      "time": 2880,
+      "rmsDb": -16.42,
+      "normalized": 0.726
+    },
+    {
+      "time": 2952,
+      "rmsDb": -12.79,
+      "normalized": 0.787
+    },
+    {
+      "time": 3024,
+      "rmsDb": -13.84,
+      "normalized": 0.769
+    },
+    {
+      "time": 3096,
+      "rmsDb": -13.43,
+      "normalized": 0.776
+    },
+    {
+      "time": 3168,
+      "rmsDb": -12.67,
+      "normalized": 0.789
+    },
+    {
+      "time": 3240,
+      "rmsDb": -13.24,
+      "normalized": 0.779
+    },
+    {
+      "time": 3312,
+      "rmsDb": -12.9,
+      "normalized": 0.785
+    },
+    {
+      "time": 3384,
+      "rmsDb": -13.17,
+      "normalized": 0.781
+    },
+    {
+      "time": 3456,
+      "rmsDb": -14.36,
+      "normalized": 0.761
+    },
+    {
+      "time": 3528,
+      "rmsDb": -14.18,
+      "normalized": 0.764
+    },
+    {
+      "time": 3600,
+      "rmsDb": -13.64,
+      "normalized": 0.773
+    },
+    {
+      "time": 3672,
+      "rmsDb": -14.04,
+      "normalized": 0.766
+    },
+    {
+      "time": 3744,
+      "rmsDb": -14.06,
+      "normalized": 0.766
+    },
+    {
+      "time": 3816,
+      "rmsDb": -13.2,
+      "normalized": 0.78
+    },
+    {
+      "time": 3888,
+      "rmsDb": -13.6,
+      "normalized": 0.773
+    },
+    {
+      "time": 3960,
+      "rmsDb": -14.86,
+      "normalized": 0.752
+    },
+    {
+      "time": 4032,
+      "rmsDb": -13.85,
+      "normalized": 0.769
+    },
+    {
+      "time": 4104,
+      "rmsDb": -13.07,
+      "normalized": 0.782
+    },
+    {
+      "time": 4176,
+      "rmsDb": -14.42,
+      "normalized": 0.76
+    },
+    {
+      "time": 4248,
+      "rmsDb": -14.05,
+      "normalized": 0.766
+    },
+    {
+      "time": 4320,
+      "rmsDb": -13.3,
+      "normalized": 0.778
+    },
+    {
+      "time": 4392,
+      "rmsDb": -13.79,
+      "normalized": 0.77
+    },
+    {
+      "time": 4464,
+      "rmsDb": -14.55,
+      "normalized": 0.757
+    },
+    {
+      "time": 4536,
+      "rmsDb": -13.25,
+      "normalized": 0.779
+    },
+    {
+      "time": 4608,
+      "rmsDb": -14.11,
+      "normalized": 0.765
+    },
+    {
+      "time": 4680,
+      "rmsDb": -14.51,
+      "normalized": 0.758
+    },
+    {
+      "time": 4752,
+      "rmsDb": -14.49,
+      "normalized": 0.758
+    },
+    {
+      "time": 4824,
+      "rmsDb": -13.83,
+      "normalized": 0.769
+    },
+    {
+      "time": 4896,
+      "rmsDb": -14.51,
+      "normalized": 0.758
+    },
+    {
+      "time": 4968,
+      "rmsDb": -13.4,
+      "normalized": 0.777
+    },
+    {
+      "time": 5040,
+      "rmsDb": -13.94,
+      "normalized": 0.768
+    },
+    {
+      "time": 5112,
+      "rmsDb": -13.18,
+      "normalized": 0.78
+    },
+    {
+      "time": 5184,
+      "rmsDb": -14.21,
+      "normalized": 0.763
+    },
+    {
+      "time": 5256,
+      "rmsDb": -13.77,
+      "normalized": 0.771
+    },
+    {
+      "time": 5328,
+      "rmsDb": -12.37,
+      "normalized": 0.794
+    },
+    {
+      "time": 5400,
+      "rmsDb": -14.82,
+      "normalized": 0.753
+    },
+    {
+      "time": 5472,
+      "rmsDb": -14.22,
+      "normalized": 0.763
+    },
+    {
+      "time": 5544,
+      "rmsDb": -14.63,
+      "normalized": 0.756
+    },
+    {
+      "time": 5616,
+      "rmsDb": -14.93,
+      "normalized": 0.751
+    },
+    {
+      "time": 5688,
+      "rmsDb": -13.76,
+      "normalized": 0.771
+    },
+    {
+      "time": 5760,
+      "rmsDb": -13.47,
+      "normalized": 0.775
+    },
+    {
+      "time": 5832,
+      "rmsDb": -13.65,
+      "normalized": 0.773
+    },
+    {
+      "time": 5904,
+      "rmsDb": -13.99,
+      "normalized": 0.767
+    },
+    {
+      "time": 5976,
+      "rmsDb": -14.09,
+      "normalized": 0.765
+    },
+    {
+      "time": 6048,
+      "rmsDb": -14.55,
+      "normalized": 0.757
+    },
+    {
+      "time": 6120,
+      "rmsDb": -13.65,
+      "normalized": 0.772
+    },
+    {
+      "time": 6192,
+      "rmsDb": -14.07,
+      "normalized": 0.765
+    },
+    {
+      "time": 6264,
+      "rmsDb": -13.68,
+      "normalized": 0.772
+    },
+    {
+      "time": 6336,
+      "rmsDb": -13.98,
+      "normalized": 0.767
+    },
+    {
+      "time": 6408,
+      "rmsDb": -14.95,
+      "normalized": 0.751
+    },
+    {
+      "time": 6480,
+      "rmsDb": -12.98,
+      "normalized": 0.784
+    },
+    {
+      "time": 6552,
+      "rmsDb": -14.4,
+      "normalized": 0.76
+    },
+    {
+      "time": 6624,
+      "rmsDb": -15.1,
+      "normalized": 0.748
+    },
+    {
+      "time": 6696,
+      "rmsDb": -13.68,
+      "normalized": 0.772
+    },
+    {
+      "time": 6768,
+      "rmsDb": -13.62,
+      "normalized": 0.773
+    },
+    {
+      "time": 6840,
+      "rmsDb": -14.34,
+      "normalized": 0.761
+    },
+    {
+      "time": 6912,
+      "rmsDb": -14.89,
+      "normalized": 0.752
+    },
+    {
+      "time": 6984,
+      "rmsDb": -13.61,
+      "normalized": 0.773
+    },
+    {
+      "time": 7056,
+      "rmsDb": -15.25,
+      "normalized": 0.746
+    },
+    {
+      "time": 7128,
+      "rmsDb": -15.14,
+      "normalized": 0.748
+    },
+    {
+      "time": 7200,
+      "rmsDb": -14.45,
+      "normalized": 0.759
+    },
+    {
+      "time": 7272,
+      "rmsDb": -13.38,
+      "normalized": 0.777
+    },
+    {
+      "time": 7344,
+      "rmsDb": -15.29,
+      "normalized": 0.745
+    },
+    {
+      "time": 7416,
+      "rmsDb": -14.45,
+      "normalized": 0.759
+    },
+    {
+      "time": 7488,
+      "rmsDb": -15.45,
+      "normalized": 0.743
+    },
+    {
+      "time": 7560,
+      "rmsDb": -14.43,
+      "normalized": 0.76
+    },
+    {
+      "time": 7632,
+      "rmsDb": -14.63,
+      "normalized": 0.756
+    },
+    {
+      "time": 7704,
+      "rmsDb": -13.99,
+      "normalized": 0.767
+    },
+    {
+      "time": 7776,
+      "rmsDb": -13.7,
+      "normalized": 0.772
+    },
+    {
+      "time": 7848,
+      "rmsDb": -14.57,
+      "normalized": 0.757
+    },
+    {
+      "time": 7920,
+      "rmsDb": -13.81,
+      "normalized": 0.77
+    },
+    {
+      "time": 7992,
+      "rmsDb": -15.05,
+      "normalized": 0.749
+    },
+    {
+      "time": 8064,
+      "rmsDb": -14.63,
+      "normalized": 0.756
+    },
+    {
+      "time": 8136,
+      "rmsDb": -14.57,
+      "normalized": 0.757
+    },
+    {
+      "time": 8208,
+      "rmsDb": -13.99,
+      "normalized": 0.767
+    },
+    {
+      "time": 8280,
+      "rmsDb": -14.19,
+      "normalized": 0.764
+    },
+    {
+      "time": 8352,
+      "rmsDb": -14.7,
+      "normalized": 0.755
+    },
+    {
+      "time": 8424,
+      "rmsDb": -15.67,
+      "normalized": 0.739
+    },
+    {
+      "time": 8496,
+      "rmsDb": -14.09,
+      "normalized": 0.765
+    },
+    {
+      "time": 8568,
+      "rmsDb": -16.22,
+      "normalized": 0.73
+    },
+    {
+      "time": 8640,
+      "rmsDb": -15.65,
+      "normalized": 0.739
+    },
+    {
+      "time": 8712,
+      "rmsDb": -14.13,
+      "normalized": 0.765
+    },
+    {
+      "time": 8784,
+      "rmsDb": -14.61,
+      "normalized": 0.757
+    },
+    {
+      "time": 8856,
+      "rmsDb": -14.26,
+      "normalized": 0.762
+    },
+    {
+      "time": 8928,
+      "rmsDb": -15.15,
+      "normalized": 0.747
+    },
+    {
+      "time": 9000,
+      "rmsDb": -15.32,
+      "normalized": 0.745
+    },
+    {
+      "time": 9072,
+      "rmsDb": -14.66,
+      "normalized": 0.756
+    },
+    {
+      "time": 9144,
+      "rmsDb": -15.25,
+      "normalized": 0.746
+    },
+    {
+      "time": 9216,
+      "rmsDb": -16.24,
+      "normalized": 0.729
+    },
+    {
+      "time": 9288,
+      "rmsDb": -13.73,
+      "normalized": 0.771
+    },
+    {
+      "time": 9360,
+      "rmsDb": -15.63,
+      "normalized": 0.739
+    },
+    {
+      "time": 9432,
+      "rmsDb": -14.25,
+      "normalized": 0.762
+    },
+    {
+      "time": 9504,
+      "rmsDb": -14.5,
+      "normalized": 0.758
+    },
+    {
+      "time": 9576,
+      "rmsDb": -12.88,
+      "normalized": 0.785
+    },
+    {
+      "time": 9648,
+      "rmsDb": -15.37,
+      "normalized": 0.744
+    },
+    {
+      "time": 9720,
+      "rmsDb": -14.11,
+      "normalized": 0.765
+    },
+    {
+      "time": 9792,
+      "rmsDb": -14.45,
+      "normalized": 0.759
+    },
+    {
+      "time": 9864,
+      "rmsDb": -14.22,
+      "normalized": 0.763
+    },
+    {
+      "time": 9936,
+      "rmsDb": -15.32,
+      "normalized": 0.745
+    },
+    {
+      "time": 10008,
+      "rmsDb": -14.45,
+      "normalized": 0.759
+    },
+    {
+      "time": 10080,
+      "rmsDb": -14.15,
+      "normalized": 0.764
+    },
+    {
+      "time": 10152,
+      "rmsDb": -13.27,
+      "normalized": 0.779
+    },
+    {
+      "time": 10224,
+      "rmsDb": -14.67,
+      "normalized": 0.756
+    },
+    {
+      "time": 10296,
+      "rmsDb": -15.77,
+      "normalized": 0.737
+    },
+    {
+      "time": 10368,
+      "rmsDb": -14.85,
+      "normalized": 0.752
+    },
+    {
+      "time": 10440,
+      "rmsDb": -13.69,
+      "normalized": 0.772
+    },
+    {
+      "time": 10512,
+      "rmsDb": -14.75,
+      "normalized": 0.754
+    },
+    {
+      "time": 10584,
+      "rmsDb": -14.15,
+      "normalized": 0.764
+    },
+    {
+      "time": 10656,
+      "rmsDb": -15.13,
+      "normalized": 0.748
+    },
+    {
+      "time": 10728,
+      "rmsDb": -19.45,
+      "normalized": 0.676
+    },
+    {
+      "time": 10800,
+      "rmsDb": -21.64,
+      "normalized": 0.639
+    },
+    {
+      "time": 10872,
+      "rmsDb": -26.24,
+      "normalized": 0.563
+    },
+    {
+      "time": 10944,
+      "rmsDb": -29.37,
+      "normalized": 0.51
+    },
+    {
+      "time": 11016,
+      "rmsDb": -32.19,
+      "normalized": 0.463
+    },
+    {
+      "time": 11088,
+      "rmsDb": -34.47,
+      "normalized": 0.425
+    },
+    {
+      "time": 11160,
+      "rmsDb": -37.25,
+      "normalized": 0.379
+    },
+    {
+      "time": 11232,
+      "rmsDb": -39.12,
+      "normalized": 0.348
+    },
+    {
+      "time": 11304,
+      "rmsDb": -41.14,
+      "normalized": 0.314
+    },
+    {
+      "time": 11376,
+      "rmsDb": -42.92,
+      "normalized": 0.285
+    },
+    {
+      "time": 11448,
+      "rmsDb": -43.88,
+      "normalized": 0.269
+    },
+    {
+      "time": 11520,
+      "rmsDb": -45.48,
+      "normalized": 0.242
+    },
+    {
+      "time": 11592,
+      "rmsDb": -46.46,
+      "normalized": 0.226
+    },
+    {
+      "time": 11664,
+      "rmsDb": -47.3,
+      "normalized": 0.212
+    },
+    {
+      "time": 11736,
+      "rmsDb": -48.51,
+      "normalized": 0.192
+    },
+    {
+      "time": 11808,
+      "rmsDb": -49.56,
+      "normalized": 0.174
+    },
+    {
+      "time": 11880,
+      "rmsDb": -50.44,
+      "normalized": 0.159
+    },
+    {
+      "time": 11952,
+      "rmsDb": -51.31,
+      "normalized": 0.145
+    },
+    {
+      "time": 12024,
+      "rmsDb": -52.37,
+      "normalized": 0.127
+    },
+    {
+      "time": 12096,
+      "rmsDb": -55.4,
+      "normalized": 0.077
+    },
+    {
+      "time": 12168,
+      "rmsDb": -59.08,
+      "normalized": 0.015
+    }
+  ]
+}
