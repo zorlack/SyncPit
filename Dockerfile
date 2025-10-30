@@ -49,6 +49,9 @@ COPY --chown=syncpit:syncpit app/persistence.js ./
 # Copy built client from builder
 COPY --from=builder --chown=syncpit:syncpit /app/dist ./dist
 
+# Copy static assets (audio, etc.)
+COPY --chown=syncpit:syncpit app/static ./static
+
 # Create pits directory
 RUN mkdir -p pits && chown syncpit:syncpit pits
 

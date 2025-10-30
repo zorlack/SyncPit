@@ -9,7 +9,8 @@
   "files": [
     "welld.js",
     "persistence.js",
-    "dist/"
+    "dist/",
+    "static/"
   ],
   "scripts": {
     "start": "node welld.js",
