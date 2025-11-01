@@ -152,6 +152,126 @@
       margin-bottom: 15px;
     }
 
+    /* Why Modal Styles */
+    /* Why Modal - Pager Style */
+    .why-modal-content {
+      max-width: 800px;
+      background: #fff;
+      color: #333;
+      border: none;
+      border-radius: 0;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      padding: 30px 80px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+
+    .why-modal-content h2 {
+      color: #333;
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 25px;
+      font-weight: 300;
+    }
+
+    .why-modal-content .modal-close {
+      color: #666;
+      border: none;
+      background: transparent;
+      font-size: 2rem;
+    }
+
+    .why-modal-content .modal-close:hover {
+      color: #000;
+      background: transparent;
+    }
+
+    .why-page {
+      display: none;
+      text-align: center;
+    }
+
+    .why-page.active {
+      display: block;
+    }
+
+    .why-page-image {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto 30px;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .why-page-content {
+      text-align: left;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .why-page-content h3 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      font-weight: 400;
+      color: #222;
+    }
+
+    .why-page-content h4 {
+      font-size: 1.1rem;
+      margin: 20px 0 10px;
+      font-weight: 600;
+      color: #444;
+    }
+
+    .why-page-content p {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #555;
+      margin-bottom: 12px;
+    }
+
+    .why-page-content .why-subsection {
+      margin-top: 20px;
+    }
+
+    .why-navigation {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .why-nav-link {
+      background: transparent;
+      border: none;
+      color: #666;
+      font-size: 0.95rem;
+      cursor: pointer;
+      padding: 10px 20px;
+      transition: color 0.2s;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+
+    .why-nav-link:hover {
+      color: #000;
+    }
+
+    .why-nav-link:disabled {
+      color: #ccc;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 768px) {
+      .why-modal-content {
+        padding: 25px 30px;
+      }
+
+      .why-page-image {
+        max-width: 100%;
+      }
+    }
+
     .actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -365,7 +485,7 @@
 <body>
   <div class="container">
     <header>
-      <button class="info-btn" onclick="openModal()">?</button>
+      <button class="info-btn" onclick="openModal(event)">?</button>
       <h1 id="logo" onclick="toggleMusic()">SYNC<br>PIT</h1>
       <audio id="welcomeMusic" src="/SYNC_PIT.mp3" preload="auto"></audio>
       <div class="tagline">Draw fast. Sync faster. Bail whenever.</div>
@@ -405,6 +525,7 @@
       <p>Built with Yjs. Runs on Node. Hosted wherever.</p>
       <p>Source: <a href="https://github.com/zorlack/SyncPit" style="color: #666;">github.com/zorlack/SyncPit</a></p>
       <p id="version-info" style="color: #444; font-size: 0.75rem; margin-top: 10px;"></p>
+      <p style="margin-top: 20px;"><a href="#why" onclick="openWhyModal(event)" style="color: #999; text-decoration: underline; cursor: pointer;">Why?</a></p>
     </footer>
   </div>
 
@@ -416,6 +537,7 @@
         <p>We're not here to optimize your engagement or harvest your data. We're here because sometimes you need to draw something with someone else, right now, without signing up for anything or downloading an app.</p>
         <p>Create a pit. Share the link. Draw. That's it.</p>
         <p>Your pit lives for 30 minutes after the last person leaves. Then it's gone. Forever. Who cares.</p>
+        <p style="margin-top: 30px; color: #999; text-align: center;"><a href="#why" onclick="closeModal(); openWhyModal(event);" style="color: #999; text-decoration: underline; cursor: pointer;">Why?</a></p>
       </div>
     </div>
   </div>
@@ -426,6 +548,55 @@
       <h2 style="text-transform: uppercase; margin-bottom: 20px;">Scan QR Code</h2>
       <div id="qr-reader"></div>
       <div class="scanner-status" id="scanner-status">Point camera at QR code...</div>
+    </div>
+  </div>
+
+  <div class="modal" id="why-modal">
+    <div class="modal-content why-modal-content">
+      <button class="modal-close" onclick="closeWhyModal()">×</button>
+      <h2>Why Sync Pit Exists</h2>
+
+      <!-- Page 1: The Problem -->
+      <div class="why-page active" id="why-page-1">
+        <img src="/PROBLEM_web.jpg" alt="The Problem - Notebook sketch" class="why-page-image">
+        <div class="why-page-content">
+          <h3>The Problem</h3>
+          <p>I spend all day on Google Meet, frequently making system drawings in MSPaint. But I have an iPad mini with an Apple Pencil. The hardware is beautiful and the pen feels lovely to use. I should be able to use it for my meetings!</p>
+        </div>
+      </div>
+
+      <!-- Page 2: How can this be? -->
+      <div class="why-page" id="why-page-2">
+        <img src="/CHALLENGE_web.jpg" alt="The Challenge - Notebook sketch" class="why-page-image">
+        <div class="why-page-content">
+          <h3><em>How can this be?</em></h3>
+          <div class="why-subsection">
+            <h4>Apple?</h4>
+            <p>It would be great if I could screenshare my iPad to my desktop PC, but you can only screen share to a Mac.</p>
+          </div>
+          <div class="why-subsection">
+            <h4>Google?</h4>
+            <p>Google had an answer to this problem called Jamboard. It's been abandoned, and the Google Meet experience on iOS doesn't permit screensharing.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page 3: The Solution -->
+      <div class="why-page" id="why-page-3">
+        <img src="/SOLUTION_web.jpg" alt="The Solution - Notebook sketch" class="why-page-image">
+        <div class="why-page-content">
+          <h3>The Solution</h3>
+          <p><strong>Sync Pit.</strong></p>
+          <p>I made Sync Pit to solve this problem. I gave it a punk rock motif because otherwise it would be as boring as this explanation modal.</p>
+          <p style="margin-top: 20px; font-style: italic;">Now I can draw on my iPad while sharing my browser window in meetings. Problem solved.</p>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="why-navigation">
+        <button class="why-nav-link" id="why-prev" onclick="whyPrevPage()">← Previous</button>
+        <button class="why-nav-link" id="why-next" onclick="whyNextPage()"></button>
+      </div>
     </div>
   </div>
 
@@ -702,13 +873,115 @@
       status.textContent = 'Point camera at QR code...';
     };
 
-    window.openModal = function() {
+    window.openModal = function(event) {
+      if (event) {
+        event.preventDefault();
+      }
       document.getElementById('info-modal').classList.add('active');
+      window.location.hash = 'info';
     };
 
     window.closeModal = function() {
       document.getElementById('info-modal').classList.remove('active');
+      if (window.location.hash === '#info') {
+        history.pushState('', document.title, window.location.pathname + window.location.search);
+      }
     };
+
+    // Why modal pager state
+    let currentWhyPage = 1;
+    const totalWhyPages = 3;
+
+    // Custom next button text for each page
+    const nextButtonText = [
+      "That doesn't sound like it should be a problem. →",
+      "Okay... well so what are you going to do about it? →",
+      ""
+    ];
+
+    window.openWhyModal = function(event) {
+      if (event) {
+        event.preventDefault();
+      }
+      currentWhyPage = 1;
+      updateWhyPage();
+      document.getElementById('why-modal').classList.add('active');
+      window.location.hash = 'why';
+    };
+
+    window.closeWhyModal = function() {
+      document.getElementById('why-modal').classList.remove('active');
+      if (window.location.hash === '#why') {
+        history.pushState('', document.title, window.location.pathname + window.location.search);
+      }
+    };
+
+    window.whyNextPage = function() {
+      if (currentWhyPage < totalWhyPages) {
+        currentWhyPage++;
+        updateWhyPage();
+      }
+    };
+
+    window.whyPrevPage = function() {
+      if (currentWhyPage > 1) {
+        currentWhyPage--;
+        updateWhyPage();
+      }
+    };
+
+    function updateWhyPage() {
+      // Hide all pages
+      for (let i = 1; i <= totalWhyPages; i++) {
+        document.getElementById(`why-page-${i}`).classList.remove('active');
+      }
+
+      // Show current page
+      document.getElementById(`why-page-${currentWhyPage}`).classList.add('active');
+
+      // Update navigation buttons
+      const prevBtn = document.getElementById('why-prev');
+      const nextBtn = document.getElementById('why-next');
+
+      prevBtn.disabled = currentWhyPage === 1;
+      nextBtn.disabled = currentWhyPage === totalWhyPages;
+
+      // Set custom next button text
+      nextBtn.textContent = nextButtonText[currentWhyPage - 1];
+    }
+
+    // Check hash on load to open modals if present
+    if (window.location.hash === '#why') {
+      openWhyModal();
+    } else if (window.location.hash === '#info') {
+      openModal();
+    }
+
+    // Handle back button to close modals
+    window.addEventListener('popstate', function(e) {
+      const hash = window.location.hash;
+
+      // Close all modals first
+      const infoModal = document.getElementById('info-modal');
+      const whyModal = document.getElementById('why-modal');
+
+      if (hash !== '#info' && infoModal.classList.contains('active')) {
+        infoModal.classList.remove('active');
+      }
+
+      if (hash !== '#why' && whyModal.classList.contains('active')) {
+        whyModal.classList.remove('active');
+      }
+
+      // Open the appropriate modal if hash is present
+      if (hash === '#info') {
+        infoModal.classList.add('active');
+      } else if (hash === '#why') {
+        currentWhyPage = 1;
+        updateWhyPage();
+        whyModal.classList.add('active');
+      }
+    });
 
     // Close modals when clicking outside
     document.getElementById('info-modal').addEventListener('click', function(e) {
@@ -723,11 +996,18 @@
       }
     });
 
+    document.getElementById('why-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeWhyModal();
+      }
+    });
+
     // Close modals with Escape key
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         closeModal();
         closeQRScanner();
+        closeWhyModal();
       }
     });
   </script>
