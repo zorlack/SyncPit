@@ -191,7 +191,7 @@
       color: #666;
     }
 
-    .action-box button {
+    .action-box button:not(.qr-icon-btn) {
       background: transparent;
       color: inherit;
       border: 2px solid currentColor;
@@ -204,68 +204,112 @@
       transition: all 0.1s;
     }
 
-    .action-box:hover button {
+    .action-box:hover button:not(.qr-icon-btn) {
       background: #000;
       color: #fff;
-    }
-
-    .jump-form {
-      display: none;
-      margin-top: 20px;
-    }
-
-    .jump-form.active {
-      display: block;
     }
 
     .jump-form-row {
       display: flex;
       gap: 8px;
-      margin-bottom: 10px;
+      margin-top: 20px;
     }
 
-    .jump-form input {
+    .input-with-icon {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-with-icon input {
       background: #000;
       color: #fff;
       border: 2px solid #fff;
-      padding: 10px;
+      padding: 14px 36px 10px 10px;
       font-family: 'Special Elite', monospace;
       font-size: 1rem;
-      flex: 1;
+      width: 100%;
+      line-height: 1.2;
     }
 
-    .action-box:hover .jump-form input {
+    .action-box:hover .input-with-icon input {
       background: #fff;
       color: #000;
       border-color: #000;
     }
 
-    .scan-qr-btn {
-      background: transparent;
-      color: #fff;
-      border: 2px solid #fff;
-      height: 44px;
-      width: 50px;
+    .qr-icon-btn {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent !important;
+      color: #666;
+      border: none !important;
+      outline: none !important;
+      height: 30px;
+      width: 30px;
       cursor: pointer;
-      padding: 0;
-      font-family: 'Special Elite', monospace;
-      font-size: 0.65rem;
-      font-weight: bold;
-      transition: all 0.1s;
-      line-height: 1.3;
-      white-space: nowrap;
+      padding: 2px;
+      margin: 0;
+      transition: color 0.1s;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding-top: 5px;
+      flex-shrink: 0;
     }
 
-    .scan-qr-btn:hover {
+    .qr-icon-btn svg {
+      width: 20px;
+      height: 20px;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .qr-icon-btn:hover {
+      color: #fff !important;
+      background: transparent !important;
+      border: none !important;
+    }
+
+    .qr-icon-btn:focus {
+      outline: none !important;
+      border: none !important;
+    }
+
+    .qr-icon-btn:active {
+      outline: none !important;
+      border: none !important;
+    }
+
+    .action-box:hover .qr-icon-btn {
+      color: #666;
+    }
+
+    .action-box:hover .qr-icon-btn:hover {
+      color: #000 !important;
+    }
+
+    .go-btn {
+      background: transparent;
+      color: #fff;
+      border: 2px solid #fff;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-family: 'Special Elite', monospace;
+      font-size: 1rem;
+      font-weight: bold;
+      transition: all 0.1s;
+      white-space: nowrap;
+    }
+
+    .go-btn:hover {
       background: #fff;
       color: #000;
     }
 
-    .action-box:hover .scan-qr-btn {
+    .action-box:hover .go-btn {
       background: #fff;
       color: #000;
       border-color: #000;
@@ -335,22 +379,24 @@
       </div>
 
       <div class="action-box">
-        <div onclick="toggleJumpForm()">
-          <h2>Jump In</h2>
-          <p>Got a pit code? Enter it here.</p>
-          <button id="jump-btn">JUMP</button>
-        </div>
-        <div class="jump-form" id="jump-form" onclick="event.stopPropagation()">
-          <div class="jump-form-row">
+        <h2>Jump In</h2>
+        <p>Got a pit code? Enter it here.</p>
+        <div class="jump-form-row">
+          <div class="input-with-icon">
             <input
               type="text"
               id="pit-code"
               placeholder="Enter pit code..."
               onkeypress="if(event.key==='Enter') jumpToPit()"
             >
-            <button class="scan-qr-btn" onclick="openQRScanner(event)" title="Scan QR Code">SCAN<br>CODE</button>
+            <button class="qr-icon-btn" onclick="openQRScanner(event)" title="Scan QR Code" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </button>
           </div>
-          <button onclick="jumpToPit()" style="width: 100%;">GO</button>
+          <button onclick="jumpToPit()" class="go-btn">GO</button>
         </div>
       </div>
     </div>
@@ -560,23 +606,24 @@
       window.location.href = `/pit/${slug}/creator`;
     };
 
-    window.toggleJumpForm = function() {
-      const form = document.getElementById('jump-form');
-      const btn = document.getElementById('jump-btn');
-
-      if (form.classList.contains('active')) {
-        form.classList.remove('active');
-        btn.textContent = 'JUMP';
-      } else {
-        form.classList.add('active');
-        btn.textContent = 'CANCEL';
-        setTimeout(() => document.getElementById('pit-code').focus(), 100);
-      }
-    };
-
-    window.jumpToPit = function() {
+    window.jumpToPit = async function() {
       const code = document.getElementById('pit-code').value.trim();
-      if (code) {
+      if (!code) {
+        alert('Please enter a pit code');
+        return;
+      }
+
+      // Check if pit exists before navigating
+      try {
+        const response = await fetch(`/pit/${code}`, { method: 'HEAD' });
+        if (response.ok) {
+          window.location.href = `/pit/${code}/creator`;
+        } else {
+          alert(`Pit "${code}" does not exist. Check your code or create a new pit.`);
+        }
+      } catch (err) {
+        console.error('Error checking pit existence:', err);
+        // If check fails, navigate anyway (fallback)
         window.location.href = `/pit/${code}/creator`;
       }
     };
