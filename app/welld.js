@@ -81,6 +81,18 @@ app.get('/pit/:slug/viewer', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'viewer.html'));
 });
 
+// Route: check if a pit exists (HEAD request) - must be before GET /pit/:slug
+app.head('/pit/:slug', async (req, res) => {
+  const { slug } = req.params;
+  if (pitStorage.pitExists(slug)) {
+    res.status(200).end();
+  } else {
+    // Delay 404 responses to prevent scraping/enumeration
+    await new Promise(resolve => setTimeout(resolve, 500));
+    res.status(404).end();
+  }
+});
+
 // Route: redirect bare pit URLs to creator by default
 app.get('/pit/:slug', (req, res) => {
   res.redirect(`/pit/${req.params.slug}/creator`);

@@ -18,6 +18,8 @@ class PitPersistence {
 
     // In-memory tracking of active pits
     this.activePits = new Map(); // slug -> { doc, lastAccess, connections }
+    this.deletedPitsCount = 0; // Track total deleted pits
+    this.totalPitsCreated = 0; // Track total pits ever created
 
     // Ensure pits directory exists
     this.ensurePitsDir();
@@ -39,6 +41,19 @@ class PitPersistence {
 
   getMetadataPath(slug) {
     return path.join(this.pitsDir, `${slug}.meta.json`);
+  }
+
+  /**
+   * Check if a Pit exists (either in memory or on disk)
+   */
+  pitExists(slug) {
+    // Check if in memory first
+    if (this.activePits.has(slug)) {
+      return true;
+    }
+    // Check if on disk
+    const pitPath = this.getPitPath(slug);
+    return fsSync.existsSync(pitPath);
   }
 
   /**
@@ -120,6 +135,7 @@ class PitPersistence {
     if (!pitInfo) {
       pitInfo = { lastAccess: Date.now(), connections: 0 };
       this.activePits.set(slug, pitInfo);
+      this.totalPitsCreated++;
     }
     pitInfo.connections++;
     this.touchPit(slug);
@@ -157,6 +173,7 @@ class PitPersistence {
     try {
       // Remove from memory
       this.activePits.delete(slug);
+      this.deletedPitsCount++;
 
       // Remove from disk
       await Promise.all([
@@ -216,21 +233,58 @@ class PitPersistence {
   }
 
   /**
-   * Get statistics about active pits
+   * Calculate min/max/avg/median for an array
    */
-  getStats() {
-    const pits = Array.from(this.activePits.entries()).map(([slug, info]) => ({
-      slug,
-      lastAccess: info.lastAccess,
-      connections: info.connections,
-      age: Date.now() - info.lastAccess
-    }));
+  _calculateStats(values) {
+    if (values.length === 0) {
+      return { min: 0, max: 0, avg: 0, median: 0 };
+    }
+
+    const sorted = [...values].sort((a, b) => a - b);
+    const sum = values.reduce((a, b) => a + b, 0);
+    const mid = Math.floor(sorted.length / 2);
 
     return {
-      totalPits: this.activePits.size,
-      ttlMs: this.ttlMs,
-      pitsDir: this.pitsDir,
-      pits
+      min: sorted[0],
+      max: sorted[sorted.length - 1],
+      avg: Math.round(sum / values.length),
+      median: sorted.length % 2 === 0
+        ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
+        : sorted[mid]
+    };
+  }
+
+  /**
+   * Get aggregated statistics about pits (no pit IDs exposed)
+   */
+  getStats() {
+    const now = Date.now();
+    const pitInfos = Array.from(this.activePits.entries());
+
+    // Calculate connections per pit
+    const connectionsPerPit = pitInfos.map(([slug, info]) => info.connections);
+
+    // Calculate pit ages in seconds
+    const pitAgesSeconds = pitInfos.map(([slug, info]) => Math.floor((now - info.lastAccess) / 1000));
+
+    // Calculate pit sizes in bytes
+    const pitSizesBytes = pitInfos.map(([slug, info]) => {
+      try {
+        const pitPath = this.getPitPath(slug);
+        const stats = fsSync.statSync(pitPath);
+        return stats.size;
+      } catch (err) {
+        return 0; // If file doesn't exist or error, return 0
+      }
+    }).filter(size => size > 0); // Only include valid sizes
+
+    return {
+      totalPits: this.totalPitsCreated,
+      deletedPits: this.deletedPitsCount,
+      activePits: this.activePits.size,
+      connectionsPerPit: this._calculateStats(connectionsPerPit),
+      activePitAgeSeconds: this._calculateStats(pitAgesSeconds),
+      pitSizeBytes: this._calculateStats(pitSizesBytes)
     };
   }
 }
