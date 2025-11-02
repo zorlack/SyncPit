@@ -873,9 +873,24 @@
       }
     };
 
+    // Validate pit ID format: 6-10 alphanumeric characters
+    function isValidPitId(pitId) {
+      return /^[a-zA-Z0-9]{6,10}$/.test(pitId);
+    }
+
+    // Generate a valid random pit slug
+    function generatePitSlug() {
+      const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      const length = 8; // Default length
+      let slug = '';
+      for (let i = 0; i < length; i++) {
+        slug += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return slug;
+    }
+
     window.createPit = function() {
-      // Generate a random pit slug
-      const slug = Math.random().toString(36).substring(2, 10);
+      const slug = generatePitSlug();
       window.location.href = `/pit/${slug}/creator`;
     };
 
@@ -883,6 +898,12 @@
       const code = document.getElementById('pit-code').value.trim();
       if (!code) {
         alert('Please enter a pit code');
+        return;
+      }
+
+      // Validate pit code format
+      if (!isValidPitId(code)) {
+        alert('Invalid pit code. Must be 6-10 alphanumeric characters.');
         return;
       }
 
@@ -941,6 +962,11 @@
             }
 
             if (pitCode) {
+              // Validate pit code format
+              if (!isValidPitId(pitCode)) {
+                status.textContent = 'Invalid pit code in QR code';
+                return;
+              }
               closeQRScanner();
               window.location.href = `/pit/${pitCode}/viewer`;
             } else {
