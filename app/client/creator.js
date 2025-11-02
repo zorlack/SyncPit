@@ -808,6 +808,13 @@ canvas.addEventListener('touchstart', (e) => {
     touchPanStart = { x: center.x, y: center.y };
     isTouchPanning = true;
 
+    // Broadcast cursor position at center of pinch
+    const worldPos = screenToWorld(center.x, center.y);
+    awareness.setLocalStateField('cursor', {
+      x: worldPos.x,
+      y: worldPos.y
+    });
+
     // Cancel any drawing in progress
     if (isDrawing && currentStroke) {
       strokes.push([currentStroke]);
@@ -821,6 +828,12 @@ canvas.addEventListener('touchstart', (e) => {
     const screenX = touch.clientX - rect.left;
     const screenY = touch.clientY - rect.top;
     const worldPos = screenToWorld(screenX, screenY);
+
+    // Broadcast cursor position
+    awareness.setLocalStateField('cursor', {
+      x: worldPos.x,
+      y: worldPos.y
+    });
 
     isDrawing = true;
     currentStroke = {
@@ -849,6 +862,13 @@ canvas.addEventListener('touchmove', (e) => {
     // Get current center
     const currentCenter = getTouchCenter(touch1, touch2, rect);
 
+    // Broadcast cursor position at center of pinch
+    const worldPos = screenToWorld(currentCenter.x, currentCenter.y);
+    awareness.setLocalStateField('cursor', {
+      x: worldPos.x,
+      y: worldPos.y
+    });
+
     // Calculate zoom around the pinch center
     const worldBefore = screenToWorld(touchStartCenter.x, touchStartCenter.y);
     viewport.scale = newScale;
@@ -874,6 +894,12 @@ canvas.addEventListener('touchmove', (e) => {
     const screenX = touch.clientX - rect.left;
     const screenY = touch.clientY - rect.top;
     const worldPos = screenToWorld(screenX, screenY);
+
+    // Broadcast cursor position
+    awareness.setLocalStateField('cursor', {
+      x: worldPos.x,
+      y: worldPos.y
+    });
 
     currentStroke.points.push(worldPos);
 

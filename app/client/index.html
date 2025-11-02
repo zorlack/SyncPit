@@ -265,6 +265,10 @@
     }
 
     @media (max-width: 768px) {
+      #why-modal {
+        padding: 0;
+      }
+
       .why-modal-content {
         max-width: 100%;
         width: 100%;
@@ -284,8 +288,24 @@
       }
 
       .why-modal-content .modal-close {
-        top: 20px;
-        right: 20px;
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        width: 44px;
+        height: 44px;
+        font-size: 2rem;
+        color: #666;
+        border: none;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2001;
+      }
+
+      .why-modal-content .modal-close:active {
+        color: #000;
+        transform: scale(0.9);
       }
 
       .why-page {
@@ -509,17 +529,55 @@
     }
 
     @media (max-width: 768px) {
+      html, body {
+        overflow: hidden;
+        overscroll-behavior: none;
+        height: 100vh;
+      }
+
+      body {
+        padding: 10px;
+      }
+
+      header {
+        margin-top: 10px;
+        margin-bottom: 20px;
+        min-height: auto;
+      }
+
       h1 {
         font-size: 18vw;
+        padding: 0 20px;
+        margin-bottom: 10px;
       }
 
       .tagline {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
+        margin-top: 8px;
       }
 
       .actions {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+
+      .action-box {
+        padding: 25px 20px;
+      }
+
+      .action-box h2 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+      }
+
+      footer {
+        padding-top: 15px;
+        font-size: 0.75rem;
+      }
+
+      footer p {
+        margin: 5px 0;
       }
 
       .modal-content {
@@ -534,7 +592,7 @@
       <button class="info-btn" onclick="openModal(event)">?</button>
       <h1 id="logo" onclick="toggleMusic()">SYNC<br>PIT</h1>
       <audio id="welcomeMusic" src="/SYNC_PIT.mp3" preload="auto"></audio>
-      <div class="tagline">Draw fast. Sync faster. Bail whenever.</div>
+      <div class="tagline">Draw&nbsp;fast. Sync&nbsp;faster. Bail&nbsp;whenever.</div>
     </header>
 
     <div class="actions">
@@ -568,10 +626,8 @@
     </div>
 
     <footer>
-      <p>Built with Yjs. Runs on Node. Hosted wherever.</p>
-      <p>Source: <a href="https://github.com/zorlack/SyncPit" style="color: #666;">github.com/zorlack/SyncPit</a></p>
-      <p id="version-info" style="color: #444; font-size: 0.75rem; margin-top: 10px;"></p>
-      <p style="margin-top: 20px;"><a href="#why" onclick="openWhyModal(event)" style="color: #999; text-decoration: underline; cursor: pointer;">Why?</a></p>
+      <p>Built with Yjs and Node. Here's <a href="#why" onclick="openWhyModal(event)" style="color: #999; text-decoration: underline; cursor: pointer;">why</a>!</p>
+      <p><a href="https://github.com/zorlack/SyncPit" style="color: #666;">github.com/zorlack/SyncPit</a> <span id="version-info" style="color: #444; font-size: 0.75rem;"></span></p>
     </footer>
   </div>
 
@@ -579,7 +635,7 @@
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal()">×</button>
       <div class="manifesto">
-        <p><strong>THIS IS NOT A PRODUCT.</strong> This is a tool.</p>
+        <p><strong>THIS IS NOT A PRODUCT.</strong><br>This is a tool.</p>
         <p>We're not here to optimize your engagement or harvest your data. We're here because sometimes you need to draw something with someone else, right now, without signing up for anything or downloading an app.</p>
         <p>Create a pit. Share the link. Draw. That's it.</p>
         <p>Your pit lives for 30 minutes after the last person leaves. Then it's gone. Forever. Who cares.</p>
@@ -834,14 +890,14 @@
       try {
         const response = await fetch(`/pit/${code}`, { method: 'HEAD' });
         if (response.ok) {
-          window.location.href = `/pit/${code}/creator`;
+          window.location.href = `/pit/${code}/viewer`;
         } else {
           alert(`Pit "${code}" does not exist. Check your code or create a new pit.`);
         }
       } catch (err) {
         console.error('Error checking pit existence:', err);
         // If check fails, navigate anyway (fallback)
-        window.location.href = `/pit/${code}/creator`;
+        window.location.href = `/pit/${code}/viewer`;
       }
     };
 
@@ -886,7 +942,7 @@
 
             if (pitCode) {
               closeQRScanner();
-              window.location.href = `/pit/${pitCode}/creator`;
+              window.location.href = `/pit/${pitCode}/viewer`;
             } else {
               status.textContent = 'Not a valid SyncPit QR code';
             }
