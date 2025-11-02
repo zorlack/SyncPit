@@ -22,6 +22,11 @@ const PITS_DIR = process.env.PITS_DIR || path.join(__dirname, 'pits');
 const PIT_TTL_MINUTES = parseInt(process.env.PIT_TTL_MINUTES || '30', 10);
 const CLEANUP_INTERVAL_MINUTES = parseInt(process.env.CLEANUP_INTERVAL_MINUTES || '5', 10);
 
+// Pit ID validation: 6-10 alphanumeric characters
+function isValidPitId(pitId) {
+  return /^[a-zA-Z0-9]{6,10}$/.test(pitId);
+}
+
 // Initialize persistence layer
 const pitStorage = new PitPersistence({
   pitsDir: PITS_DIR,
@@ -60,6 +65,16 @@ setPersistence({
 // Express app
 const app = express();
 
+// Middleware to validate pit slug parameter
+function validatePitSlug(req, res, next) {
+  const { slug } = req.params;
+  if (!isValidPitId(slug)) {
+    console.warn(`[Security] Invalid pit slug rejected: ${slug}`);
+    return res.status(400).send('Invalid pit ID. Must be 6-10 alphanumeric characters.');
+  }
+  next();
+}
+
 // Serve static files from the dist/ directory (built by Vite)
 app.use(express.static(path.join(__dirname, 'dist')));
 
@@ -72,17 +87,17 @@ app.get('/', (req, res) => {
 });
 
 // Route: serve creator interface
-app.get('/pit/:slug/creator', (req, res) => {
+app.get('/pit/:slug/creator', validatePitSlug, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'creator.html'));
 });
 
 // Route: serve viewer interface
-app.get('/pit/:slug/viewer', (req, res) => {
+app.get('/pit/:slug/viewer', validatePitSlug, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'viewer.html'));
 });
 
 // Route: check if a pit exists (HEAD request) - must be before GET /pit/:slug
-app.head('/pit/:slug', async (req, res) => {
+app.head('/pit/:slug', validatePitSlug, async (req, res) => {
   const { slug } = req.params;
   if (pitStorage.pitExists(slug)) {
     res.status(200).end();
@@ -94,7 +109,7 @@ app.head('/pit/:slug', async (req, res) => {
 });
 
 // Route: redirect bare pit URLs to creator by default
-app.get('/pit/:slug', (req, res) => {
+app.get('/pit/:slug', validatePitSlug, (req, res) => {
   res.redirect(`/pit/${req.params.slug}/creator`);
 });
 
@@ -115,15 +130,22 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws, req) => {
-  // y-websocket will handle document management via setPersistence
-  setupWSConnection(ws, req);
-
-  // Track connection for stats/monitoring
+  // Extract and validate document name from URL
   const url = new URL(req.url, `http://${req.headers.host}`);
   const docName = url.pathname.slice(1) || 'default';
 
+  // Validate pit ID to prevent path traversal attacks
+  if (!isValidPitId(docName)) {
+    console.warn(`[Security] Invalid pit ID rejected in WebSocket: ${docName}`);
+    ws.close(1008, 'Invalid pit ID. Must be 6-10 alphanumeric characters.');
+    return;
+  }
+
   console.log(`[Well] Client connected to pit: ${docName}`);
   pitStorage.incrementConnections(docName);
+
+  // y-websocket will handle document management via setPersistence
+  setupWSConnection(ws, req);
 
   ws.on('close', async () => {
     console.log(`[Well] Client disconnected from pit: ${docName}`);
