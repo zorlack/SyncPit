@@ -556,6 +556,80 @@
       color: #000;
       border-color: #0f0;
     }
+
+    /* Mobile styles */
+    @media (max-width: 768px) {
+      #header {
+        height: auto;
+        min-height: 50px;
+        padding: 8px 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      #info {
+        font-size: 14px;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .info-group {
+        gap: 6px;
+      }
+
+      #pitLabel {
+        font-size: 20px;
+        margin-top: 4px;
+      }
+
+      .pit-tag,
+      .role-tag {
+        font-size: 11px;
+        padding: 3px 6px;
+      }
+
+      .tool-btn {
+        font-size: 11px;
+        padding: 0 10px;
+        height: 30px;
+      }
+
+      .tool-btn.icon-btn {
+        width: 30px;
+        height: 30px;
+      }
+
+      .tool-btn.icon-btn svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      #followBtn {
+        font-size: 11px;
+        padding: 0 10px;
+        height: 30px;
+      }
+
+      #canvas {
+        top: auto;
+        bottom: 0;
+      }
+
+      #status,
+      #zoomInfo {
+        font-size: 10px;
+        padding: 6px 8px;
+      }
+
+      .share-dropdown {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        min-width: auto;
+        width: calc(100vw - 20px);
+        transform: none;
+      }
+    }
   </style>
 </head>
 <body>
