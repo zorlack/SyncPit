@@ -482,17 +482,18 @@ document.getElementById('exportFullBtn').addEventListener('click', () => {
   strokes.forEach(stroke => {
     if (!stroke || !stroke.points || stroke.points.length < 2) return;
 
-    exportCtx.strokeStyle = stroke.color || '#000000';
-    exportCtx.lineWidth = stroke.width || 3;
     exportCtx.lineCap = 'round';
     exportCtx.lineJoin = 'round';
 
     // Handle eraser strokes
     if (stroke.tool === 'eraser') {
       exportCtx.globalCompositeOperation = 'destination-out';
+      exportCtx.strokeStyle = 'rgba(0,0,0,1)'; // Opaque black for erasing
       exportCtx.lineWidth = 20;
     } else {
       exportCtx.globalCompositeOperation = 'source-over';
+      exportCtx.strokeStyle = stroke.color || '#000000';
+      exportCtx.lineWidth = stroke.width || 3;
     }
 
     exportCtx.beginPath();
