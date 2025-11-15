@@ -47,7 +47,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}
             # Main branch → dev, 0.0.0-dev
             type=raw,value=dev,enable={{is_default_branch}}
             type=raw,value=0.0.0-dev,enable={{is_default_branch}}
@@ -55,8 +55,8 @@ jobs:
             type=ref,event=branch,enable=${{ startsWith(github.ref, 'refs/heads/experimental/') }},prefix=0.0.0-experimental-,suffix=
             # Pull requests → pr-<number>
             type=ref,event=pr,prefix=pr-
-            # SHA tag for branch builds only (not tags)
-            type=sha,enable=${{ github.ref_type == 'branch' }},prefix={{branch}}-,format=short
+            # SHA tag for branch builds only (not tags or PRs)
+            type=sha,enable=${{ github.ref_type == 'branch' && github.event_name != 'pull_request' }},prefix={{branch}}-,format=short
 
       - name: Determine version
         id: version
