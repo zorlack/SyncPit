@@ -484,14 +484,13 @@ document.getElementById('exportFullBtn').addEventListener('click', () => {
 
     exportCtx.lineCap = 'round';
     exportCtx.lineJoin = 'round';
+    exportCtx.globalCompositeOperation = 'source-over';
 
-    // Handle eraser strokes
+    // Handle eraser strokes - draw white to match background
     if (stroke.tool === 'eraser') {
-      exportCtx.globalCompositeOperation = 'destination-out';
-      exportCtx.strokeStyle = 'rgba(0,0,0,1)'; // Opaque black for erasing
+      exportCtx.strokeStyle = '#ffffff';
       exportCtx.lineWidth = 20;
     } else {
-      exportCtx.globalCompositeOperation = 'source-over';
       exportCtx.strokeStyle = stroke.color || '#000000';
       exportCtx.lineWidth = stroke.width || 3;
     }
