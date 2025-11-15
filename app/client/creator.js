@@ -487,6 +487,14 @@ document.getElementById('exportFullBtn').addEventListener('click', () => {
     exportCtx.lineCap = 'round';
     exportCtx.lineJoin = 'round';
 
+    // Handle eraser strokes
+    if (stroke.tool === 'eraser') {
+      exportCtx.globalCompositeOperation = 'destination-out';
+      exportCtx.lineWidth = 20;
+    } else {
+      exportCtx.globalCompositeOperation = 'source-over';
+    }
+
     exportCtx.beginPath();
     const startX = stroke.points[0].x - minX;
     const startY = stroke.points[0].y - minY;
