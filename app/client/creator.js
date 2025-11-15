@@ -482,10 +482,18 @@ document.getElementById('exportFullBtn').addEventListener('click', () => {
   strokes.forEach(stroke => {
     if (!stroke || !stroke.points || stroke.points.length < 2) return;
 
-    exportCtx.strokeStyle = stroke.color || '#000000';
-    exportCtx.lineWidth = stroke.width || 3;
     exportCtx.lineCap = 'round';
     exportCtx.lineJoin = 'round';
+    exportCtx.globalCompositeOperation = 'source-over';
+
+    // Handle eraser strokes - draw white to match background
+    if (stroke.tool === 'eraser') {
+      exportCtx.strokeStyle = '#ffffff';
+      exportCtx.lineWidth = 20;
+    } else {
+      exportCtx.strokeStyle = stroke.color || '#000000';
+      exportCtx.lineWidth = stroke.width || 3;
+    }
 
     exportCtx.beginPath();
     const startX = stroke.points[0].x - minX;
